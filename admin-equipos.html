@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toolbar .search-box { flex: 1; min-width: 200px; }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .equipos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+  }
+  .equipo-card {
+    background: var(--blanco);
+    border: 2px solid var(--gris-cl);
+    border-radius: 14px;
+    padding: 18px;
+    transition: all 0.2s;
+  }
+  .equipo-card:hover {
+    border-color: var(--rojo);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(227,6,19,0.08);
+  }
+  .equipo-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .equipo-escudo {
+    width: 48px;
+    height: 48px;
+    background: var(--bg);
+    border: 2px solid var(--gris-cl);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--rojo);
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .equipo-escudo img { width: 100%; height: 100%; object-fit: cover; }
+  .equipo-info-main { flex: 1; min-width: 0; }
+  .equipo-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .equipo-ciudad {
+    font-size: 12px;
+    color: var(--gris);
+    margin-top: 2px;
+  }
+  .equipo-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .tag {
+    background: var(--gris-bg);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--texto-2);
+  }
+  .tag-cat { background: rgba(227,6,19,0.08); color: var(--rojo); }
+  .tag-grupo { background: rgba(0,0,0,0.06); }
+  .tag-grupo-vacio { background: rgba(243,156,18,0.15); color: #B58B00; }
+
+  .equipo-acciones {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gris-cl);
+  }
+  .equipo-acciones button { flex: 1; }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Equipos</h1>
+      <p class="page-subtitle">Equipos inscritos en el torneo (1 por club-categoría)</p>
+    </div>
+    <button class="btn btn-primario" onclick="abrirCrear()">+ Inscribir equipo</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="buscador" placeholder="Buscar por nombre de club...">
+    </div>
+    <select id="filtroCategoria" class="filtro-select">
+      <option value="">Todas las categorías</option>
+    </select>
+    <select id="filtroGrupo" class="filtro-select">
+      <option value="">Todos los grupos</option>
+      <option value="A">Grupo A</option>
+      <option value="B">Grupo B</option>
+      <option value="C">Grupo C</option>
+      <option value="D">Grupo D</option>
+      <option value="_sin">Sin grupo</option>
+    </select>
+    <select id="filtroEstado" class="filtro-select">
+      <option value="">Todos los estados</option>
+      <option value="INSCRITO">Pendientes</option>
+      <option value="APROBADO">Aprobados</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando equipos...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let equiposGlobal = [];
+let categoriasGlobal = [];
+let clubesGlobal = [];
+
+let filtros = {
+  busqueda: '',
+  categoria: '',
+  grupo: '',
+  estado: ''
+};
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando equipos...</div>';
+
+  // Cargar en paralelo
+  const [rEquipos, rCats, rClubes] = await Promise.all([
+    apiCall('listarEquipos'),
+    apiCall('listarCategorias'),
+    apiCall('listarClubes')
+  ]);
+
+  if (!rEquipos.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(rEquipos.mensaje) + '</div>';
+    return;
+  }
+  equiposGlobal = rEquipos.data || [];
+  categoriasGlobal = rCats.success ? rCats.data : [];
+  clubesGlobal = rClubes.success ? rClubes.data : [];
+
+  // Llenar filtro de categorías
+  const selCat = document.getElementById('filtroCategoria');
+  selCat.innerHTML = '<option value="">Todas las categorías</option>' +
+    categoriasGlobal.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+
+  renderEquipos();
+}
+
+function renderEquipos() {
+  const cont = document.getElementById('contenido');
+
+  let lista = equiposGlobal;
+  if (filtros.busqueda) {
+    const q = filtros.busqueda.toLowerCase();
+    lista = lista.filter(e => (e.nombre_club || '').toLowerCase().includes(q));
+  }
+  if (filtros.categoria) lista = lista.filter(e => e.categoria === filtros.categoria);
+  if (filtros.grupo) {
+    if (filtros.grupo === '_sin') {
+      lista = lista.filter(e => !e.grupo);
+    } else {
+      lista = lista.filter(e => e.grupo === filtros.grupo);
+    }
+  }
+  if (filtros.estado) lista = lista.filter(e => e.estado === filtros.estado);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">⚽</div>
+          <p style="font-weight:700;">No hay equipos ${tieneFiltros() ? 'con esos filtros' : 'inscritos'}</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">${tieneFiltros() ? 'Probá quitar filtros o' : 'Hacé click en'} "Inscribir equipo" para agregar uno.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Agrupar por categoría
+  const porCategoria = {};
+  lista.forEach(e => {
+    const c = e.categoria || 'Sin categoría';
+    if (!porCategoria[c]) porCategoria[c] = [];
+    porCategoria[c].push(e);
+  });
+
+  let html = '';
+  Object.keys(porCategoria).sort().forEach(cat => {
+    const catInfo = categoriasGlobal.find(c => c.id === cat);
+    const nombreCat = catInfo ? catInfo.nombre : cat;
+    html += `<h3 style="font-family:'Nunito';font-weight:900;color:var(--rojo);font-size:18px;margin:20px 0 12px;">${escapeHtml(nombreCat)} <span style="color:var(--gris);font-size:13px;font-weight:600;">(${porCategoria[cat].length})</span></h3>`;
+    html += '<div class="equipos-grid">';
+    porCategoria[cat].forEach(e => {
+      const grupoTag = e.grupo
+        ? `<span class="tag tag-grupo">Grupo ${escapeHtml(e.grupo)}</span>`
+        : `<span class="tag tag-grupo-vacio">Sin grupo</span>`;
+
+      html += `
+        <div class="equipo-card">
+          <div class="equipo-card-header">
+            <div class="equipo-escudo">${e.escudo_url ? `<img src="${escapeHtml(e.escudo_url)}" onerror="this.outerHTML='${siglas(e.nombre_club)}'">` : siglas(e.nombre_club)}</div>
+            <div class="equipo-info-main">
+              <div class="equipo-nombre">${escapeHtml(e.nombre_club)}</div>
+              <div class="equipo-ciudad">${escapeHtml(e.ciudad || '—')}</div>
+            </div>
+          </div>
+          <div class="equipo-tags">
+            <span class="tag tag-cat">${escapeHtml(e.categoria_nombre || e.categoria)}</span>
+            ${grupoTag}
+            ${badgeEstado(e.estado)}
+          </div>
+          <div class="equipo-acciones">
+            <button class="btn btn-secundario btn-sm" onclick="abrirEditar('${e.id}')">Editar</button>
+            ${e.estado === 'INSCRITO' ? `<button class="btn btn-verde btn-sm" onclick="aprobarEquipo('${e.id}')">Aprobar</button>` : ''}
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  });
+
+  cont.innerHTML = html;
+}
+
+function tieneFiltros() {
+  return filtros.busqueda || filtros.categoria || filtros.grupo || filtros.estado;
+}
+
+// Filtros
+document.getElementById('buscador').addEventListener('input', e => {
+  filtros.busqueda = e.target.value.trim();
+  renderEquipos();
+});
+document.getElementById('filtroCategoria').addEventListener('change', e => {
+  filtros.categoria = e.target.value;
+  renderEquipos();
+});
+document.getElementById('filtroGrupo').addEventListener('change', e => {
+  filtros.grupo = e.target.value;
+  renderEquipos();
+});
+document.getElementById('filtroEstado').addEventListener('change', e => {
+  filtros.estado = e.target.value;
+  renderEquipos();
+});
+
+// ───────── CREAR ─────────
+function abrirCrear() {
+  showModal('Inscribir equipo', renderForm());
+  conectarForm(null);
+}
+
+// ───────── EDITAR ─────────
+async function abrirEditar(idEquipo) {
+  showModal('Editar equipo', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerEquipo', { id: idEquipo });
+  if (!r.success) {
+    toastError(r.mensaje);
+    closeModal();
+    return;
+  }
+  showModal('Editar equipo', renderForm(r.data));
+  conectarForm(r.data);
+}
+
+function renderForm(detalle) {
+  const equipo = detalle ? detalle.equipo : null;
+  const esEdicion = !!equipo;
+
+  const clubOptions = clubesGlobal
+    .map(c => `<option value="${c.id}" ${equipo && equipo.id_club === c.id ? 'selected' : ''}>${escapeHtml(c.nombre)} (${escapeHtml(c.ciudad || '')})</option>`)
+    .join('');
+
+  const catOptions = categoriasGlobal
+    .map(c => `<option value="${c.id}" ${equipo && equipo.categoria === c.id ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`)
+    .join('');
+
+  const grupoActual = equipo ? equipo.grupo : '';
+  const estadoActual = equipo ? equipo.estado : 'INSCRITO';
+
+  return `
+    <form id="formEquipo">
+      ${esEdicion ? `<input type="hidden" id="equipoId" value="${equipo.id}">` : ''}
+
+      ${detalle && detalle.contadores ? `
+        <div style="background:var(--gris-bg);border-radius:10px;padding:14px;margin-bottom:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+          <div><div style="font-family:'Nunito';font-size:22px;font-weight:900;">${detalle.contadores.jugadores_total}</div><div style="font-size:11px;color:var(--gris);font-weight:700;">Jugadores</div></div>
+          <div><div style="font-family:'Nunito';font-size:22px;font-weight:900;color:var(--verde);">${detalle.contadores.jugadores_aprobados}</div><div style="font-size:11px;color:var(--gris);font-weight:700;">Aprobados</div></div>
+          <div><div style="font-family:'Nunito';font-size:22px;font-weight:900;">${detalle.contadores.arqueros}</div><div style="font-size:11px;color:var(--gris);font-weight:700;">Arqueros</div></div>
+          <div><div style="font-family:'Nunito';font-size:22px;font-weight:900;">${detalle.contadores.niñas}</div><div style="font-size:11px;color:var(--gris);font-weight:700;">Niñas</div></div>
+        </div>
+      ` : ''}
+
+      <div class="form-grupo">
+        <label class="form-label">Club <span class="req">*</span></label>
+        <select id="club" class="form-select" required ${esEdicion ? 'disabled' : ''}>
+          <option value="">Seleccionar club...</option>
+          ${clubOptions}
+        </select>
+        ${esEdicion ? '<div class="form-help">El club no se puede cambiar después de creado</div>' : ''}
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Categoría <span class="req">*</span></label>
+          <select id="categoria" class="form-select" required ${esEdicion ? 'disabled' : ''}>
+            <option value="">Seleccionar...</option>
+            ${catOptions}
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Grupo</label>
+          <select id="grupo" class="form-select">
+            <option value="">Sin asignar</option>
+            <option value="A" ${grupoActual === 'A' ? 'selected' : ''}>Grupo A</option>
+            <option value="B" ${grupoActual === 'B' ? 'selected' : ''}>Grupo B</option>
+            <option value="C" ${grupoActual === 'C' ? 'selected' : ''}>Grupo C</option>
+            <option value="D" ${grupoActual === 'D' ? 'selected' : ''}>Grupo D</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Origen del cupo</label>
+        <select id="cupoOrigen" class="form-select">
+          <option value="INVITACION_DIRECTA" ${equipo && equipo.cupo_origen === 'INVITACION_DIRECTA' ? 'selected' : ''}>Invitación directa</option>
+          <option value="CAMPEON_2025" ${equipo && equipo.cupo_origen === 'CAMPEON_2025' ? 'selected' : ''}>Campeón 2025</option>
+          <option value="ZONAL_NORTE" ${equipo && equipo.cupo_origen === 'ZONAL_NORTE' ? 'selected' : ''}>Zonal Norte</option>
+          <option value="ZONAL_SUR" ${equipo && equipo.cupo_origen === 'ZONAL_SUR' ? 'selected' : ''}>Zonal Sur</option>
+          <option value="REPECHAJE" ${equipo && equipo.cupo_origen === 'REPECHAJE' ? 'selected' : ''}>Repechaje</option>
+        </select>
+      </div>
+
+      ${esEdicion ? `
+        <div class="form-grupo">
+          <label class="form-label">Estado</label>
+          <select id="estado" class="form-select">
+            <option value="INSCRITO" ${estadoActual === 'INSCRITO' ? 'selected' : ''}>Pendiente (INSCRITO)</option>
+            <option value="APROBADO" ${estadoActual === 'APROBADO' ? 'selected' : ''}>Aprobado</option>
+            <option value="RETIRADO" ${estadoActual === 'RETIRADO' ? 'selected' : ''}>Retirado</option>
+          </select>
+        </div>
+      ` : ''}
+
+      <div class="form-grupo">
+        <label class="form-label">Notas</label>
+        <textarea id="notas" class="form-textarea" rows="2">${equipo ? escapeHtml(equipo.notas || '') : ''}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${esEdicion ? 'Guardar cambios' : 'Inscribir'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarForm(detalle) {
+  const equipo = detalle ? detalle.equipo : null;
+  const form = document.getElementById('formEquipo');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const params = {
+      grupo: document.getElementById('grupo').value,
+      cupo_origen: document.getElementById('cupoOrigen').value,
+      notas: document.getElementById('notas').value.trim()
+    };
+
+    let r;
+    if (equipo) {
+      params.id = equipo.id;
+      if (document.getElementById('estado')) {
+        params.estado = document.getElementById('estado').value;
+      }
+      r = await apiCall('actualizarEquipo', params);
+    } else {
+      params.id_club = document.getElementById('club').value;
+      params.categoria = document.getElementById('categoria').value;
+      if (!params.id_club) { toastWarning('Seleccioná un club'); btn.disabled = false; btn.textContent = 'Inscribir'; return; }
+      if (!params.categoria) { toastWarning('Seleccioná una categoría'); btn.disabled = false; btn.textContent = 'Inscribir'; return; }
+      r = await apiCall('crearEquipo', params);
+    }
+
+    if (!r.success) {
+      toastError(r.mensaje);
+      btn.disabled = false;
+      btn.textContent = equipo ? 'Guardar cambios' : 'Inscribir';
+      return;
+    }
+
+    toastSuccess(r.mensaje || 'Guardado');
+    closeModal();
+    cargar();
+  });
+}
+
+// ───────── APROBAR ─────────
+async function aprobarEquipo(idEquipo) {
+  const ok = await confirmar(
+    '¿Aprobar este equipo? El sistema validará la plantilla y generará alertas si encuentra problemas (pero no bloqueará la aprobación).',
+    { titulo: 'Aprobar equipo', txtSi: 'Sí, aprobar', peligroso: false }
+  );
+  if (!ok) return;
+
+  const r = await apiCall('aprobarEquipo', { id: idEquipo });
+  if (!r.success) {
+    toastError(r.mensaje);
+    return;
+  }
+
+  if (r.data && r.data.alertas && r.data.alertas.length > 0) {
+    toastWarning(`Aprobado con ${r.data.alertas.length} alerta(s). Revisá la sección de Alertas.`);
+  } else {
+    toastSuccess('Equipo aprobado');
+  }
+  cargar();
+}
+
+cargar();
+</script>
+
+</body>
+</html>

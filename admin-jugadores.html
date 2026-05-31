@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jugadores</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toolbar .search-box { flex: 1; min-width: 220px; }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+    min-width: 150px;
+  }
+
+  .foto-cell {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gris-bg);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11px;
+    color: var(--gris);
+    font-weight: 900;
+  }
+  .foto-cell img { width: 100%; height: 100%; object-fit: cover; }
+
+  .num-camiseta {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: var(--texto);
+    color: var(--amarillo);
+    border-radius: 8px;
+    text-align: center;
+    line-height: 32px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  .preview-foto {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 auto 12px;
+    border: 2px solid var(--gris-cl);
+    background: var(--gris-bg);
+  }
+  .preview-foto img { width: 100%; height: 100%; object-fit: cover; }
+
+  .file-input-wrap {
+    border: 2px dashed var(--gris-cl);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .file-input-wrap:hover { border-color: var(--rojo); background: rgba(227,6,19,0.02); }
+  .file-input-wrap input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+
+  .alerta-validacion {
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border-left: 4px solid;
+  }
+  .alerta-CRITICA { background: rgba(227,6,19,0.08); color: var(--rojo); border-left-color: var(--rojo); font-weight: 600; }
+  .alerta-ADVERTENCIA { background: rgba(255,204,0,0.15); color: #8B6F00; border-left-color: var(--amarillo); font-weight: 500; }
+  .alerta-INFO { background: rgba(0,0,0,0.04); color: var(--texto-2); border-left-color: var(--gris); font-weight: 500; }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Jugadores</h1>
+      <p class="page-subtitle">Plantillas de los equipos del torneo</p>
+    </div>
+    <button class="btn btn-primario" onclick="abrirCrear()">+ Nuevo jugador</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="buscador" placeholder="Buscar por nombre, apellido o documento...">
+    </div>
+    <select id="filtroEquipo" class="filtro-select">
+      <option value="">Todos los equipos</option>
+    </select>
+    <select id="filtroEstado" class="filtro-select">
+      <option value="">Todos los estados</option>
+      <option value="PENDIENTE" selected>Pendientes</option>
+      <option value="APROBADO">Aprobados</option>
+      <option value="RECHAZADO">Rechazados</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando jugadores...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let jugadoresGlobal = [];
+let equiposGlobal = [];
+
+let filtros = { busqueda: '', equipo: '', estado: 'PENDIENTE' };
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando jugadores...</div>';
+
+  const [rJug, rEq] = await Promise.all([
+    apiCall('listarJugadores'),
+    apiCall('listarEquipos')
+  ]);
+
+  if (!rJug.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(rJug.mensaje) + '</div>';
+    return;
+  }
+
+  jugadoresGlobal = rJug.data || [];
+  equiposGlobal = rEq.success ? rEq.data : [];
+
+  // Llenar filtro de equipos
+  const selEq = document.getElementById('filtroEquipo');
+  selEq.innerHTML = '<option value="">Todos los equipos</option>' +
+    equiposGlobal.map(e => `<option value="${e.id}">${escapeHtml(e.nombre_club)} - ${e.categoria}</option>`).join('');
+
+  renderJugadores();
+}
+
+function getEquipoInfo(idEquipo) {
+  return equiposGlobal.find(e => e.id === idEquipo) || {};
+}
+
+function renderJugadores() {
+  const cont = document.getElementById('contenido');
+
+  let lista = jugadoresGlobal;
+  if (filtros.busqueda) {
+    const q = filtros.busqueda.toLowerCase();
+    lista = lista.filter(j =>
+      (j.nombres || '').toLowerCase().includes(q) ||
+      (j.apellidos || '').toLowerCase().includes(q) ||
+      String(j.documento || '').toLowerCase().includes(q)
+    );
+  }
+  if (filtros.equipo) lista = lista.filter(j => j.id_equipo === filtros.equipo);
+  if (filtros.estado) lista = lista.filter(j => j.estado === filtros.estado);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">👥</div>
+          <p style="font-weight:700;">No hay jugadores ${tieneFiltros() ? 'con esos filtros' : ''}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th style="width:50px;"></th>
+            <th>#</th>
+            <th>Jugador</th>
+            <th>Equipo</th>
+            <th>Edad</th>
+            <th>Doc</th>
+            <th>Pos</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  lista.forEach(j => {
+    const eq = getEquipoInfo(j.id_equipo);
+    const year = String(j.fecha_nacimiento || '').substring(0, 4);
+    const edad = year ? (new Date().getFullYear() - parseInt(year)) : '?';
+
+    html += `
+      <tr>
+        <td>
+          <div class="foto-cell">
+            ${j.foto_url
+              ? `<img src="${escapeHtml(j.foto_url)}" onerror="this.outerHTML='${siglas((j.nombres || '') + ' ' + (j.apellidos || ''))}'">`
+              : siglas((j.nombres || '') + ' ' + (j.apellidos || ''))}
+          </div>
+        </td>
+        <td>${j.numero_camiseta ? `<span class="num-camiseta">${j.numero_camiseta}</span>` : '—'}</td>
+        <td>
+          <strong>${escapeHtml(j.nombres || '')} ${escapeHtml(j.apellidos || '')}</strong>
+          ${toBool(j.es_arquero) ? '<span class="tag" style="margin-left:6px;background:rgba(255,204,0,0.2);color:#8B6F00;font-size:10px;">ARQ</span>' : ''}
+          ${j.genero === 'F' ? '<span class="tag" style="margin-left:6px;background:rgba(227,6,19,0.1);color:var(--rojo);font-size:10px;">F</span>' : ''}
+        </td>
+        <td>
+          <div style="font-size:13px;">${escapeHtml(eq.nombre_club || '—')}</div>
+          <div style="font-size:11px;color:var(--gris);">${eq.categoria || ''}</div>
+        </td>
+        <td style="font-size:13px;">${edad}<br><span style="font-size:11px;color:var(--gris);">${year || ''}</span></td>
+        <td style="font-size:13px;font-family:monospace;">${escapeHtml(j.documento || '')}</td>
+        <td style="font-size:12px;">${escapeHtml(j.posicion || '—')}</td>
+        <td>${badgeEstado(j.estado)}</td>
+        <td>
+          <div class="acciones">
+            <button class="btn btn-secundario btn-sm" onclick="verJugador('${j.id}')">Ver</button>
+            ${j.estado === 'PENDIENTE' ? `
+              <button class="btn btn-verde btn-sm" onclick="cambiarEstado('${j.id}','APROBADO')">✓</button>
+              <button class="btn btn-peligro btn-sm" onclick="cambiarEstado('${j.id}','RECHAZADO')">✗</button>
+            ` : `
+              <button class="btn btn-secundario btn-sm" onclick="abrirEditar('${j.id}')">Editar</button>
+            `}
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--gris);">${lista.length} jugador${lista.length === 1 ? '' : 'es'}</p>
+  `;
+  cont.innerHTML = html;
+}
+
+function toBool(v) {
+  if (v === true || v === 'SI' || v === 'Sí' || v === 'true' || v === 1) return true;
+  return false;
+}
+
+function tieneFiltros() {
+  return filtros.busqueda || filtros.equipo || filtros.estado;
+}
+
+// Filtros
+document.getElementById('buscador').addEventListener('input', e => {
+  filtros.busqueda = e.target.value.trim();
+  renderJugadores();
+});
+document.getElementById('filtroEquipo').addEventListener('change', e => {
+  filtros.equipo = e.target.value;
+  renderJugadores();
+});
+document.getElementById('filtroEstado').addEventListener('change', e => {
+  filtros.estado = e.target.value;
+  renderJugadores();
+});
+
+// ───────── VER ─────────
+async function verJugador(id) {
+  const r = await apiCall('obtenerJugador', { id });
+  if (!r.success) { toastError(r.mensaje); return; }
+
+  const j = r.data.jugador;
+  const eq = r.data.equipo || {};
+
+  showModal(j.nombres + ' ' + j.apellidos, `
+    <div style="display:flex;gap:18px;align-items:center;margin-bottom:18px;">
+      <div style="width:80px;height:80px;border-radius:50%;background:var(--bg);border:2px solid var(--gris-cl);overflow:hidden;flex-shrink:0;">
+        ${j.foto_url ? `<img src="${escapeHtml(j.foto_url)}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-family:'Nunito';font-weight:900;font-size:24px;color:var(--rojo);">${siglas(j.nombres + ' ' + j.apellidos)}</div>`}
+      </div>
+      <div style="flex:1;">
+        <div style="font-family:'Nunito';font-size:20px;font-weight:900;">${escapeHtml(j.nombres + ' ' + j.apellidos)}</div>
+        <div style="color:var(--gris);font-size:13px;">${escapeHtml(eq.nombre_club || '')} · ${eq.categoria || ''}</div>
+        <div style="margin-top:6px;">${j.numero_camiseta ? `<span class="num-camiseta">${j.numero_camiseta}</span>` : ''} ${badgeEstado(j.estado)}</div>
+      </div>
+    </div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr><td style="padding:6px 0;color:var(--gris);">Fecha nacimiento:</td><td>${j.fecha_nacimiento || '—'}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">Documento:</td><td>${escapeHtml(j.tipo_doc || 'RC')} ${escapeHtml(j.documento || '')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">Género:</td><td>${j.genero === 'F' ? 'Femenino' : 'Masculino'}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">Posición:</td><td>${escapeHtml(j.posicion || '—')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">Es arquero:</td><td>${toBool(j.es_arquero) ? 'Sí' : 'No'}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">EPS:</td><td>${escapeHtml(j.eps || '—')}</td></tr>
+      ${j.motivo_rechazo ? `<tr><td style="padding:6px 0;color:var(--rojo);">Motivo rechazo:</td><td style="color:var(--rojo);">${escapeHtml(j.motivo_rechazo)}</td></tr>` : ''}
+    </table>
+    <div class="form-actions">
+      <button class="btn btn-secundario" onclick="closeModal()">Cerrar</button>
+      <button class="btn btn-primario" onclick="closeModal(); abrirEditar('${j.id}')">Editar</button>
+    </div>
+  `);
+}
+
+// ───────── CREAR / EDITAR ─────────
+function abrirCrear() {
+  showModal('Nuevo jugador', renderForm());
+  conectarForm(null);
+}
+
+async function abrirEditar(idJugador) {
+  showModal('Editar jugador', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerJugador', { id: idJugador });
+  if (!r.success) { toastError(r.mensaje); closeModal(); return; }
+
+  showModal('Editar: ' + r.data.jugador.nombres + ' ' + r.data.jugador.apellidos, renderForm(r.data.jugador));
+  conectarForm(r.data.jugador);
+}
+
+function renderForm(jug) {
+  const equiposOpt = equiposGlobal
+    .map(e => `<option value="${e.id}" ${jug && jug.id_equipo === e.id ? 'selected' : ''}>${escapeHtml(e.nombre_club)} - ${e.categoria}${e.grupo ? ' Gpo ' + e.grupo : ''}</option>`)
+    .join('');
+
+  return `
+    <form id="formJug">
+      ${jug ? `<input type="hidden" id="jugId" value="${jug.id}">` : ''}
+
+      <div class="form-grupo">
+        <label class="form-label">Foto del jugador</label>
+        ${jug && jug.foto_url ? `<div class="preview-foto"><img src="${escapeHtml(jug.foto_url)}"></div>` : ''}
+        <div class="file-input-wrap">
+          <div style="font-size:24px;opacity:0.5;">📷</div>
+          <div style="font-weight:700;font-size:13px;" id="fileLabel">${jug && jug.foto_url ? 'Reemplazar foto' : 'Subir foto'}</div>
+          <div style="font-size:11px;color:var(--gris);">PNG, JPG. Máx 2MB.</div>
+          <input type="file" id="fotoFile" accept="image/png,image/jpeg,image/jpg">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Equipo <span class="req">*</span></label>
+        <select id="equipo" class="form-select" required ${jug ? 'disabled' : ''}>
+          <option value="">Seleccionar equipo...</option>
+          ${equiposOpt}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nombres <span class="req">*</span></label>
+          <input type="text" id="nombres" class="form-input" value="${jug ? escapeHtml(jug.nombres || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Apellidos <span class="req">*</span></label>
+          <input type="text" id="apellidos" class="form-input" value="${jug ? escapeHtml(jug.apellidos || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Género <span class="req">*</span></label>
+          <select id="genero" class="form-select" required>
+            <option value="M" ${jug && jug.genero === 'M' ? 'selected' : ''}>Masculino</option>
+            <option value="F" ${jug && jug.genero === 'F' ? 'selected' : ''}>Femenino</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Fecha nacimiento <span class="req">*</span></label>
+          <input type="date" id="fecha_nacimiento" class="form-input" value="${jug ? jug.fecha_nacimiento || '' : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Tipo doc</label>
+          <select id="tipo_doc" class="form-select">
+            <option value="RC" ${jug && jug.tipo_doc === 'RC' ? 'selected' : ''}>RC (Registro Civil)</option>
+            <option value="TI" ${jug && jug.tipo_doc === 'TI' ? 'selected' : ''}>TI (Tarjeta Identidad)</option>
+            <option value="CC" ${jug && jug.tipo_doc === 'CC' ? 'selected' : ''}>CC (Cédula)</option>
+            <option value="CE" ${jug && jug.tipo_doc === 'CE' ? 'selected' : ''}>CE (Cédula Extranjería)</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Documento <span class="req">*</span></label>
+          <input type="text" id="documento" class="form-input" value="${jug ? escapeHtml(jug.documento || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Número camiseta</label>
+          <input type="number" id="numero_camiseta" class="form-input" min="1" max="99" value="${jug ? jug.numero_camiseta || '' : ''}">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Posición</label>
+          <select id="posicion" class="form-select">
+            <option value="">—</option>
+            <option value="ARQ" ${jug && jug.posicion === 'ARQ' ? 'selected' : ''}>Arquero</option>
+            <option value="DEF" ${jug && jug.posicion === 'DEF' ? 'selected' : ''}>Defensa</option>
+            <option value="MED" ${jug && jug.posicion === 'MED' ? 'selected' : ''}>Mediocampo</option>
+            <option value="DEL" ${jug && jug.posicion === 'DEL' ? 'selected' : ''}>Delantero</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;">
+          <input type="checkbox" id="es_arquero" ${jug && toBool(jug.es_arquero) ? 'checked' : ''}>
+          Marcar como arquero (importante para validaciones de doble arquero)
+        </label>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">EPS</label>
+        <input type="text" id="eps" class="form-input" value="${jug ? escapeHtml(jug.eps || '') : ''}">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${jug ? 'Guardar cambios' : 'Crear jugador'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarForm(jug) {
+  document.getElementById('fotoFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) {
+      document.getElementById('fileLabel').textContent = f.name;
+      if (f.size > 2 * 1024 * 1024) toastWarning('Foto supera 2MB');
+    }
+  });
+
+  document.getElementById('formJug').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const fotoInput = document.getElementById('fotoFile');
+      let fotoData = null;
+      if (fotoInput.files.length > 0) {
+        fotoData = await leerArchivoBase64(fotoInput);
+      }
+
+      const params = {
+        nombres: document.getElementById('nombres').value.trim(),
+        apellidos: document.getElementById('apellidos').value.trim(),
+        genero: document.getElementById('genero').value,
+        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+        tipo_doc: document.getElementById('tipo_doc').value,
+        documento: document.getElementById('documento').value.trim(),
+        numero_camiseta: document.getElementById('numero_camiseta').value || '',
+        posicion: document.getElementById('posicion').value,
+        es_arquero: document.getElementById('es_arquero').checked,
+        eps: document.getElementById('eps').value.trim()
+      };
+
+      if (fotoData) {
+        params.foto_base64 = fotoData.base64;
+        params.foto_extension = fotoData.extension;
+      }
+
+      let r;
+      if (jug) {
+        params.id = jug.id;
+        r = await apiCall('actualizarJugador', params);
+      } else {
+        params.id_equipo = document.getElementById('equipo').value;
+        if (!params.id_equipo) { toastWarning('Seleccioná un equipo'); btn.disabled = false; btn.textContent = 'Crear jugador'; return; }
+        r = await apiCall('crearJugador', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = jug ? 'Guardar cambios' : 'Crear jugador';
+        return;
+      }
+
+      // Mostrar alertas si las hay
+      if (r.data && r.data.alertas && r.data.alertas.length > 0) {
+        mostrarAlertasValidacion(r.data.alertas, r.data.jugador || r.data);
+      } else {
+        toastSuccess('Jugador guardado');
+        closeModal();
+        cargar();
+      }
+
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = jug ? 'Guardar cambios' : 'Crear jugador';
+    }
+  });
+}
+
+function mostrarAlertasValidacion(alertas, datos) {
+  const html = `
+    <p style="font-size:14px;margin-bottom:14px;">El jugador se guardó pero el sistema detectó algunas alertas que deberías revisar:</p>
+    ${alertas.map(a => `
+      <div class="alerta-validacion alerta-${a.severidad}">
+        <strong>${escapeHtml(a.tipo)}</strong><br>
+        ${escapeHtml(a.descripcion)}
+      </div>
+    `).join('')}
+    <div class="form-actions">
+      <button class="btn btn-primario" onclick="closeModal(); cargar();">Entendido</button>
+    </div>
+  `;
+  showModal('⚠️ Alertas detectadas', html);
+}
+
+// ───────── APROBAR / RECHAZAR ─────────
+async function cambiarEstado(id, nuevoEstado) {
+  let motivo = '';
+  if (nuevoEstado === 'RECHAZADO') {
+    motivo = prompt('Motivo del rechazo:');
+    if (motivo === null) return;
+  } else {
+    const ok = await confirmar(`¿Aprobar este jugador?`, { txtSi: 'Sí, aprobar', peligroso: false });
+    if (!ok) return;
+  }
+
+  const r = await apiCall('cambiarEstadoJugador', { id, estado: nuevoEstado, motivo_rechazo: motivo });
+  if (!r.success) { toastError(r.mensaje); return; }
+
+  toastSuccess(r.mensaje);
+  cargar();
+}
+
+cargar();
+</script>
+
+</body>
+</html>

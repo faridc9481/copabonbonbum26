@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuerpo técnico</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .toolbar .search-box { flex: 1; min-width: 220px; }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+    min-width: 150px;
+  }
+
+  .rol-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'Nunito', sans-serif;
+  }
+  .rol-TECNICO { background: rgba(227,6,19,0.1); color: var(--rojo); }
+  .rol-ASISTENTE { background: rgba(0,0,0,0.06); color: var(--texto-2); }
+  .rol-DELEGADO { background: rgba(45,169,79,0.12); color: var(--verde-osc); }
+
+  .cert-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .cert-SI { color: var(--verde); }
+  .cert-NO { color: var(--rojo); }
+  .cert-PENDIENTE { color: var(--gris); }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Cuerpo técnico</h1>
+      <p class="page-subtitle">Técnicos, asistentes y delegados. Requieren certificado Ley 2210/2022.</p>
+    </div>
+    <button class="btn btn-primario" onclick="abrirCrear()">+ Nuevo miembro</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="buscador" placeholder="Buscar por nombre o documento...">
+    </div>
+    <select id="filtroEquipo" class="filtro-select">
+      <option value="">Todos los equipos</option>
+    </select>
+    <select id="filtroRol" class="filtro-select">
+      <option value="">Todos los roles</option>
+      <option value="TECNICO">Técnico</option>
+      <option value="ASISTENTE">Asistente</option>
+      <option value="DELEGADO">Delegado</option>
+    </select>
+    <select id="filtroCert" class="filtro-select">
+      <option value="">Todos los certificados</option>
+      <option value="PENDIENTE">Pendiente validar</option>
+      <option value="SI">Validado</option>
+      <option value="NO">Rechazado</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando cuerpo técnico...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let ctGlobal = [];
+let equiposGlobal = [];
+let filtros = { busqueda: '', equipo: '', rol: '', cert: '' };
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando...</div>';
+
+  const [rCT, rEq] = await Promise.all([
+    apiCall('listarCuerpoTecnico'),
+    apiCall('listarEquipos')
+  ]);
+
+  if (!rCT.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(rCT.mensaje) + '</div>';
+    return;
+  }
+
+  ctGlobal = rCT.data || [];
+  equiposGlobal = rEq.success ? rEq.data : [];
+
+  const selEq = document.getElementById('filtroEquipo');
+  selEq.innerHTML = '<option value="">Todos los equipos</option>' +
+    equiposGlobal.map(e => `<option value="${e.id}">${escapeHtml(e.nombre_club)} - ${e.categoria}</option>`).join('');
+
+  renderLista();
+}
+
+function getEquipoInfo(idEquipo) {
+  return equiposGlobal.find(e => e.id === idEquipo) || {};
+}
+
+function renderLista() {
+  const cont = document.getElementById('contenido');
+
+  let lista = ctGlobal;
+  if (filtros.busqueda) {
+    const q = filtros.busqueda.toLowerCase();
+    lista = lista.filter(ct =>
+      (ct.nombres || '').toLowerCase().includes(q) ||
+      (ct.apellidos || '').toLowerCase().includes(q) ||
+      String(ct.documento || '').toLowerCase().includes(q)
+    );
+  }
+  if (filtros.equipo) lista = lista.filter(ct => ct.id_equipo === filtros.equipo);
+  if (filtros.rol) lista = lista.filter(ct => ct.rol === filtros.rol);
+  if (filtros.cert) lista = lista.filter(ct => String(ct.certificado_validado).toUpperCase() === filtros.cert);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">👔</div>
+          <p style="font-weight:700;">No hay miembros ${tieneFiltros() ? 'con esos filtros' : 'registrados'}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th>Equipo</th>
+            <th>Documento</th>
+            <th>Teléfono</th>
+            <th>Certificado</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  lista.forEach(ct => {
+    const eq = getEquipoInfo(ct.id_equipo);
+    const certEstado = String(ct.certificado_validado || 'PENDIENTE').toUpperCase();
+
+    html += `
+      <tr>
+        <td>
+          <strong>${escapeHtml(ct.nombres + ' ' + ct.apellidos)}</strong>
+        </td>
+        <td><span class="rol-tag rol-${ct.rol}">${ct.rol}</span></td>
+        <td>
+          <div style="font-size:13px;">${escapeHtml(eq.nombre_club || '—')}</div>
+          <div style="font-size:11px;color:var(--gris);">${eq.categoria || ''}</div>
+        </td>
+        <td style="font-family:monospace;font-size:13px;">${escapeHtml(ct.documento || '')}</td>
+        <td style="font-size:13px;">${escapeHtml(ct.telefono || '—')}</td>
+        <td>
+          <span class="cert-estado cert-${certEstado}">
+            ${certEstado === 'SI' ? '✓ Validado' : certEstado === 'NO' ? '✗ Rechazado' : '⏳ Pendiente'}
+          </span>
+          ${ct.certificado_url ? `<br><a href="${escapeHtml(ct.certificado_url)}" target="_blank" style="font-size:11px;color:var(--rojo);">Ver archivo</a>` : ''}
+        </td>
+        <td>
+          <div class="acciones">
+            ${certEstado !== 'SI' && ct.certificado_url ? `<button class="btn btn-verde btn-sm" onclick="validarCert('${ct.id}','SI')">✓</button>` : ''}
+            ${certEstado !== 'NO' && ct.certificado_url ? `<button class="btn btn-peligro btn-sm" onclick="validarCert('${ct.id}','NO')">✗</button>` : ''}
+            <button class="btn btn-secundario btn-sm" onclick="abrirEditar('${ct.id}')">Editar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--gris);">${lista.length} miembro${lista.length === 1 ? '' : 's'}</p>
+  `;
+  cont.innerHTML = html;
+}
+
+function tieneFiltros() {
+  return filtros.busqueda || filtros.equipo || filtros.rol || filtros.cert;
+}
+
+document.getElementById('buscador').addEventListener('input', e => { filtros.busqueda = e.target.value.trim(); renderLista(); });
+document.getElementById('filtroEquipo').addEventListener('change', e => { filtros.equipo = e.target.value; renderLista(); });
+document.getElementById('filtroRol').addEventListener('change', e => { filtros.rol = e.target.value; renderLista(); });
+document.getElementById('filtroCert').addEventListener('change', e => { filtros.cert = e.target.value; renderLista(); });
+
+// ───────── CREAR / EDITAR ─────────
+function abrirCrear() {
+  showModal('Nuevo miembro CT', renderForm());
+  conectarForm(null);
+}
+
+function abrirEditar(idCT) {
+  const ct = ctGlobal.find(x => x.id === idCT);
+  if (!ct) { toastError('No encontrado'); return; }
+  showModal('Editar: ' + ct.nombres + ' ' + ct.apellidos, renderForm(ct));
+  conectarForm(ct);
+}
+
+function renderForm(ct) {
+  const equiposOpt = equiposGlobal
+    .map(e => `<option value="${e.id}" ${ct && ct.id_equipo === e.id ? 'selected' : ''}>${escapeHtml(e.nombre_club)} - ${e.categoria}</option>`)
+    .join('');
+
+  return `
+    <form id="formCT">
+      <div class="form-grupo">
+        <label class="form-label">Equipo <span class="req">*</span></label>
+        <select id="equipo" class="form-select" required ${ct ? 'disabled' : ''}>
+          <option value="">Seleccionar...</option>
+          ${equiposOpt}
+        </select>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Rol <span class="req">*</span></label>
+        <select id="rol" class="form-select" required ${ct ? 'disabled' : ''}>
+          <option value="TECNICO" ${ct && ct.rol === 'TECNICO' ? 'selected' : ''}>Técnico (DT)</option>
+          <option value="ASISTENTE" ${ct && ct.rol === 'ASISTENTE' ? 'selected' : ''}>Asistente técnico</option>
+          <option value="DELEGADO" ${ct && ct.rol === 'DELEGADO' ? 'selected' : ''}>Delegado</option>
+        </select>
+        <div class="form-help">Reglamento Art. 11: el técnico y asistente requieren certificado Ley 2210/2022</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nombres <span class="req">*</span></label>
+          <input type="text" id="nombres" class="form-input" value="${ct ? escapeHtml(ct.nombres || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Apellidos <span class="req">*</span></label>
+          <input type="text" id="apellidos" class="form-input" value="${ct ? escapeHtml(ct.apellidos || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Documento <span class="req">*</span></label>
+          <input type="text" id="documento" class="form-input" value="${ct ? escapeHtml(ct.documento || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" id="telefono" class="form-input" value="${ct ? escapeHtml(ct.telefono || '') : ''}">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-input" value="${ct ? escapeHtml(ct.email || '') : ''}">
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Certificado Ley 2210/2022 (PDF o imagen)</label>
+        ${ct && ct.certificado_url ? `<p style="font-size:12px;margin-bottom:6px;"><a href="${escapeHtml(ct.certificado_url)}" target="_blank" style="color:var(--rojo);">Ver certificado actual</a></p>` : ''}
+        <div style="border:2px dashed var(--gris-cl);border-radius:12px;padding:16px;text-align:center;cursor:pointer;position:relative;">
+          <div style="font-size:24px;opacity:0.5;">📄</div>
+          <div style="font-weight:700;font-size:13px;" id="fileLabel">${ct && ct.certificado_url ? 'Reemplazar certificado' : 'Subir certificado'}</div>
+          <div style="font-size:11px;color:var(--gris);">PDF, JPG, PNG. Máx 5MB.</div>
+          <input type="file" id="certFile" accept="application/pdf,image/png,image/jpeg" style="position:absolute;opacity:0;inset:0;cursor:pointer;">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${ct ? 'Guardar cambios' : 'Crear'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarForm(ct) {
+  document.getElementById('certFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) {
+      document.getElementById('fileLabel').textContent = f.name;
+      if (f.size > 5 * 1024 * 1024) toastWarning('El archivo supera 5MB');
+    }
+  });
+
+  document.getElementById('formCT').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const certInput = document.getElementById('certFile');
+      let certData = null;
+      if (certInput.files.length > 0) {
+        certData = await leerArchivoBase64(certInput);
+      }
+
+      const params = {
+        nombres: document.getElementById('nombres').value.trim(),
+        apellidos: document.getElementById('apellidos').value.trim(),
+        documento: document.getElementById('documento').value.trim(),
+        telefono: document.getElementById('telefono').value.trim(),
+        email: document.getElementById('email').value.trim()
+      };
+
+      if (certData) {
+        params.certificado_base64 = certData.base64;
+        params.certificado_extension = certData.extension;
+      }
+
+      let r;
+      if (ct) {
+        params.id = ct.id;
+        r = await apiCall('actualizarMiembroCT', params);
+      } else {
+        params.id_equipo = document.getElementById('equipo').value;
+        params.rol = document.getElementById('rol').value;
+        if (!params.id_equipo) { toastWarning('Seleccioná un equipo'); btn.disabled = false; btn.textContent = 'Crear'; return; }
+        r = await apiCall('crearMiembroCT', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = ct ? 'Guardar cambios' : 'Crear';
+        return;
+      }
+
+      toastSuccess(r.mensaje || 'Guardado');
+      closeModal();
+      cargar();
+
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = ct ? 'Guardar cambios' : 'Crear';
+    }
+  });
+}
+
+// ───────── VALIDAR CERTIFICADO ─────────
+async function validarCert(id, validacion) {
+  const txt = validacion === 'SI' ? '¿Validar este certificado como válido?' : '¿Rechazar este certificado?';
+  const ok = await confirmar(txt, {
+    txtSi: validacion === 'SI' ? 'Sí, validar' : 'Sí, rechazar',
+    peligroso: validacion === 'NO'
+  });
+  if (!ok) return;
+
+  const r = await apiCall('validarCertificadoCT', { id, validacion });
+  if (!r.success) { toastError(r.mensaje); return; }
+  toastSuccess(r.mensaje);
+  cargar();
+}
+
+cargar();
+</script>
+
+</body>
+</html>
