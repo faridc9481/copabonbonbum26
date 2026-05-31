@@ -246,10 +246,10 @@ function renderEquipos() {
       html += `
         <div class="equipo-card">
           <div class="equipo-card-header">
-            <div class="equipo-escudo">${e.escudo_url ? `<img src="${escapeHtml(e.escudo_url)}" onerror="this.outerHTML='${siglas(e.nombre_club)}'">` : siglas(e.nombre_club)}</div>
+            <div class="equipo-escudo">${e.escudo_url ? `<img src="${escapeHtml(e.escudo_url)}" onerror="this.outerHTML='${siglas(e.nombre_display || e.nombre_club)}'">` : siglas(e.nombre_display || e.nombre_club)}</div>
             <div class="equipo-info-main">
-              <div class="equipo-nombre">${escapeHtml(e.nombre_club)}</div>
-              <div class="equipo-ciudad">${escapeHtml(e.ciudad || '—')}</div>
+              <div class="equipo-nombre">${escapeHtml(e.nombre_display || e.nombre_club)}</div>
+              <div class="equipo-ciudad">${escapeHtml(e.ciudad || '—')}${e.nombre_display && e.nombre_display !== e.nombre_club ? ` · <em style="font-size:11px;">${escapeHtml(e.nombre_club)}</em>` : ''}</div>
             </div>
           </div>
           <div class="equipo-tags">
@@ -379,6 +379,12 @@ function renderForm(detalle) {
         </select>
       </div>
 
+      <div class="form-grupo">
+        <label class="form-label">Nombre alternativo (opcional)</label>
+        <input type="text" id="nombreDisplay" class="form-input" value="${equipo ? escapeHtml(equipo.nombre_display || '') : ''}" placeholder="Ej: Castilla Femenino, La Paila Juvenil...">
+        <div class="form-help">Solo si querés mostrar un nombre distinto al del club para este equipo específico. Si lo dejás vacío, se usa el nombre del club.</div>
+      </div>
+
       ${esEdicion ? `
         <div class="form-grupo">
           <label class="form-label">Estado</label>
@@ -416,6 +422,7 @@ function conectarForm(detalle) {
     const params = {
       grupo: document.getElementById('grupo').value,
       cupo_origen: document.getElementById('cupoOrigen').value,
+      nombre_display: document.getElementById('nombreDisplay').value.trim(),
       notas: document.getElementById('notas').value.trim()
     };
 
