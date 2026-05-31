@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubes</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .clubes-toolbar {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .clubes-toolbar .search-box { flex: 1; min-width: 200px; }
+
+  .escudo-grande {
+    width: 64px;
+    height: 64px;
+    background: var(--bg);
+    border: 2px solid var(--gris-cl);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    color: var(--rojo);
+    font-weight: 900;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .escudo-grande img { width: 100%; height: 100%; object-fit: cover; }
+
+  .file-input-wrap {
+    border: 2px dashed var(--gris-cl);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .file-input-wrap:hover { border-color: var(--rojo); background: rgba(227,6,19,0.02); }
+  .file-input-wrap input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .file-input-icon { font-size: 32px; opacity: 0.5; margin-bottom: 4px; }
+  .file-input-label { font-weight: 700; font-size: 13px; color: var(--texto-2); }
+  .file-input-sub { font-size: 11px; color: var(--gris); margin-top: 2px; }
+
+  .preview-escudo {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--gris-cl);
+  }
+  .preview-escudo img { width: 100%; height: 100%; object-fit: cover; }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Clubes</h1>
+      <p class="page-subtitle">Gestión de organizaciones participantes</p>
+    </div>
+    <button class="btn btn-primario" onclick="abrirCrear()">+ Nuevo club</button>
+  </div>
+
+  <div class="clubes-toolbar">
+    <div class="search-box">
+      <input type="text" id="buscador" placeholder="Buscar por nombre o ciudad...">
+    </div>
+    <select id="filtroEstado" class="form-select" style="max-width:180px;">
+      <option value="">Todos</option>
+      <option value="SI" selected>Activos</option>
+      <option value="NO">Inactivos</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando clubes...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let clubesGlobal = [];
+let filtros = { busqueda: '', activo: 'SI' };
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando clubes...</div>';
+
+  const r = await apiCall('listarClubes');
+  if (!r.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>';
+    return;
+  }
+
+  // listarClubes solo devuelve activos. Para ver todos necesitaríamos otra opción.
+  // Por ahora, trabajamos con lo que hay.
+  clubesGlobal = r.data;
+  renderTabla();
+}
+
+function renderTabla() {
+  const cont = document.getElementById('contenido');
+
+  // Aplicar filtros
+  let lista = clubesGlobal;
+  if (filtros.busqueda) {
+    const q = filtros.busqueda.toLowerCase();
+    lista = lista.filter(c =>
+      (c.nombre || '').toLowerCase().includes(q) ||
+      (c.ciudad || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">🏆</div>
+          <p style="font-weight:700;">No hay clubes ${filtros.busqueda ? 'que coincidan con la búsqueda' : 'registrados'}</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Hacé click en "Nuevo club" para agregar el primero.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="tabla-wrap">
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Club</th>
+            <th>Ciudad</th>
+            <th>Departamento</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  lista.forEach(c => {
+    html += `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:12px;">
+            ${renderEscudoMini(c.escudo_url, c.nombre)}
+            <strong>${escapeHtml(c.nombre)}</strong>
+          </div>
+        </td>
+        <td>${escapeHtml(c.ciudad || '—')}</td>
+        <td>${escapeHtml(c.departamento || '—')}</td>
+        <td>
+          <div class="acciones">
+            <button class="btn btn-secundario btn-sm" onclick="abrirEditar('${c.id}')">Editar</button>
+            <button class="btn btn-peligro btn-sm" onclick="confirmarDesactivar('${c.id}', '${escapeHtml(c.nombre).replace(/'/g, "\\'")}')">Desactivar</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:14px;font-size:13px;color:var(--gris);">${lista.length} club${lista.length === 1 ? '' : 'es'} mostrado${lista.length === 1 ? '' : 's'}</p>
+  `;
+  cont.innerHTML = html;
+}
+
+// ───────── BÚSQUEDA ─────────
+document.getElementById('buscador').addEventListener('input', (e) => {
+  filtros.busqueda = e.target.value.trim();
+  renderTabla();
+});
+
+document.getElementById('filtroEstado').addEventListener('change', (e) => {
+  filtros.activo = e.target.value;
+  cargar();
+});
+
+// ───────── CREAR ─────────
+function abrirCrear() {
+  showModal('Nuevo club', renderFormulario());
+  conectarFormulario(null);
+}
+
+// ───────── EDITAR ─────────
+async function abrirEditar(idClub) {
+  showModal('Editar club', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerClub', { id: idClub });
+  if (!r.success) {
+    toastError(r.mensaje);
+    closeModal();
+    return;
+  }
+
+  showModal('Editar club: ' + r.data.club.nombre, renderFormulario(r.data.club));
+  conectarFormulario(r.data.club);
+}
+
+// ───────── FORMULARIO ─────────
+function renderFormulario(club) {
+  const c = club || {};
+  return `
+    <form id="formClub">
+      ${c.id ? `<input type="hidden" id="clubId" value="${c.id}">` : ''}
+
+      <div class="form-grupo">
+        <label class="form-label">Escudo del club</label>
+        ${c.escudo_url ? `
+          <div class="preview-escudo">
+            <img src="${escapeHtml(c.escudo_url)}" alt="">
+          </div>
+        ` : ''}
+        <div class="file-input-wrap">
+          <div class="file-input-icon">🖼️</div>
+          <div class="file-input-label" id="fileLabel">${c.escudo_url ? 'Reemplazar escudo' : 'Subir escudo'}</div>
+          <div class="file-input-sub">PNG, JPG o WEBP. Máx 2MB.</div>
+          <input type="file" id="escudoFile" accept="image/png,image/jpeg,image/jpg,image/webp">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Nombre del club <span class="req">*</span></label>
+        <input type="text" id="nombre" class="form-input" value="${escapeHtml(c.nombre || '')}" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Ciudad <span class="req">*</span></label>
+          <input type="text" id="ciudad" class="form-input" value="${escapeHtml(c.ciudad || '')}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Departamento</label>
+          <input type="text" id="departamento" class="form-input" value="${escapeHtml(c.departamento || '')}">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Representante legal</label>
+        <input type="text" id="representante" class="form-input" value="${escapeHtml(c.representante_legal || '')}">
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Documento</label>
+          <input type="text" id="documentoRep" class="form-input" value="${escapeHtml(c.documento_rep || '')}">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" id="telefono" class="form-input" value="${escapeHtml(c.telefono_rep || '')}">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-input" value="${escapeHtml(c.email || '')}">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${c.id ? 'Guardar cambios' : 'Crear club'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarFormulario(clubExistente) {
+  const form = document.getElementById('formClub');
+
+  // Mostrar nombre del archivo seleccionado
+  document.getElementById('escudoFile').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (f) {
+      document.getElementById('fileLabel').textContent = f.name;
+      // Validar tamaño
+      if (f.size > 2 * 1024 * 1024) {
+        toastWarning('El archivo supera 2MB. Considere comprimirlo.');
+      }
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      // Leer escudo si vino uno nuevo
+      const archivoInput = document.getElementById('escudoFile');
+      let escudoData = null;
+      if (archivoInput.files.length > 0) {
+        escudoData = await leerArchivoBase64(archivoInput);
+      }
+
+      const params = {
+        nombre: document.getElementById('nombre').value.trim(),
+        ciudad: document.getElementById('ciudad').value.trim(),
+        departamento: document.getElementById('departamento').value.trim(),
+        representante_legal: document.getElementById('representante').value.trim(),
+        documento_rep: document.getElementById('documentoRep').value.trim(),
+        telefono_rep: document.getElementById('telefono').value.trim(),
+        email: document.getElementById('email').value.trim()
+      };
+
+      if (escudoData) {
+        params.escudo_base64 = escudoData.base64;
+        params.escudo_extension = escudoData.extension;
+      }
+
+      let r;
+      if (clubExistente) {
+        params.id = clubExistente.id;
+        r = await apiCall('actualizarClub', params);
+      } else {
+        r = await apiCall('crearClub', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = clubExistente ? 'Guardar cambios' : 'Crear club';
+        return;
+      }
+
+      toastSuccess(r.mensaje || 'Club guardado');
+      closeModal();
+      cargar();
+
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = clubExistente ? 'Guardar cambios' : 'Crear club';
+    }
+  });
+}
+
+// ───────── DESACTIVAR ─────────
+async function confirmarDesactivar(idClub, nombre) {
+  const ok = await confirmar(
+    `¿Desactivar el club "${nombre}"? Esto lo ocultará del torneo pero conservará su historial.`,
+    { titulo: 'Desactivar club', txtSi: 'Sí, desactivar' }
+  );
+  if (!ok) return;
+
+  const r = await apiCall('desactivarClub', { id: idClub });
+  if (!r.success) {
+    toastError(r.mensaje);
+    return;
+  }
+  toastSuccess(r.mensaje);
+  cargar();
+}
+
+// ───────── INIT ─────────
+cargar();
+</script>
+
+</body>
+</html>

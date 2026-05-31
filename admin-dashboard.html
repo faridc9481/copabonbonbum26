@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .welcome {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
+    color: var(--blanco);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .welcome::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: var(--amarillo);
+    border-radius: 50%;
+    opacity: 0.18;
+  }
+  .welcome h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 2;
+  }
+  .welcome p {
+    color: rgba(255,255,255,0.9);
+    font-size: 15px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .stat-icon.r { background: rgba(227,6,19,0.1); }
+  .stat-icon.a { background: rgba(255,204,0,0.2); }
+  .stat-icon.v { background: rgba(45,169,79,0.12); }
+  .stat-icon.g { background: rgba(0,0,0,0.06); }
+  .stat-num {
+    font-family: 'Nunito', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--gris);
+    margin-top: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--verde);
+    margin-top: 2px;
+    font-weight: 700;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .acciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .accion-btn {
+    background: var(--blanco);
+    border: 2px solid var(--gris-cl);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .accion-btn:hover {
+    border-color: var(--rojo);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(227,6,19,0.12);
+  }
+  .accion-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .accion-label {
+    font-weight: 800;
+    font-size: 13px;
+  }
+
+  .partido-mini {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gris-cl);
+    font-size: 14px;
+  }
+  .partido-mini:last-child { border-bottom: none; }
+  .partido-equipos {
+    flex: 1;
+    font-weight: 700;
+  }
+  .partido-meta {
+    font-size: 12px;
+    color: var(--gris);
+    font-weight: 600;
+  }
+
+  .lista-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gris-cl);
+    gap: 12px;
+  }
+  .lista-item:last-child { border-bottom: none; }
+  .lista-item-info { display: flex; align-items: center; gap: 10px; }
+  .lista-item-nombre { font-weight: 700; font-size: 14px; }
+  .lista-item-meta { font-size: 12px; color: var(--gris); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+  <div class="welcome">
+    <h1 id="saludoTitulo">¡Bienvenido!</h1>
+    <p id="saludoTexto">Cargando información del torneo...</p>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-icon r">🏆</div>
+      <div class="stat-num">—</div>
+      <div class="stat-label">Clubes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon a">⚽</div>
+      <div class="stat-num">—</div>
+      <div class="stat-label">Equipos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon v">👥</div>
+      <div class="stat-num">—</div>
+      <div class="stat-label">Jugadores</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon g">📅</div>
+      <div class="stat-num">—</div>
+      <div class="stat-label">Partidos</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-titulo">Acciones rápidas</div>
+    <div class="acciones-grid">
+      <div class="accion-btn" onclick="window.parent.navigateTo('admin-clubes.html')">
+        <div class="accion-icon">➕</div>
+        <div class="accion-label">Nuevo club</div>
+      </div>
+      <div class="accion-btn" onclick="window.parent.navigateTo('admin-equipos.html')">
+        <div class="accion-icon">⚽</div>
+        <div class="accion-label">Equipos</div>
+      </div>
+      <div class="accion-btn" onclick="window.parent.navigateTo('admin-partidos.html')">
+        <div class="accion-icon">📅</div>
+        <div class="accion-label">Programar</div>
+      </div>
+      <div class="accion-btn" onclick="window.parent.navigateTo('admin-tablas.html')">
+        <div class="accion-icon">🔄</div>
+        <div class="accion-label">Recalcular</div>
+      </div>
+      <div class="accion-btn" onclick="window.parent.navigateTo('admin-alertas.html')">
+        <div class="accion-icon">🔔</div>
+        <div class="accion-label">Alertas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-titulo">Equipos pendientes de aprobación</div>
+      <div id="equiposPendientes">
+        <div class="loading">Cargando...</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-titulo">Próximos partidos</div>
+      <div id="proximosPartidos">
+        <div class="loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Verificar autenticación (en iframe se valida también)
+if (!requireAuth([ROLES.ADMIN])) {
+  // redirige
+}
+
+document.getElementById('saludoTitulo').textContent = `¡Hola, ${getNombre() || 'admin'}!`;
+
+async function cargarDashboard() {
+  try {
+    const r = await apiCall('getDashboardPublico');
+    if (!r.success) {
+      toastError('Error cargando dashboard: ' + r.mensaje);
+      return;
+    }
+
+    const d = r.data;
+
+    // Actualizar saludo
+    if (d.torneo) {
+      document.getElementById('saludoTexto').textContent =
+        `${d.torneo.edicion} edición · ${d.torneo.fecha_inicio || ''} al ${d.torneo.fecha_fin || ''}`;
+    }
+
+    // Stats
+    const clubes = await apiCall('listarClubes');
+    const numClubes = clubes.success ? clubes.data.length : 0;
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-icon r">🏆</div>
+        <div class="stat-num">${numClubes}</div>
+        <div class="stat-label">Clubes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon a">⚽</div>
+        <div class="stat-num">${d.stats.equipos_total}</div>
+        <div class="stat-label">Equipos</div>
+        ${d.stats.equipos_aprobados ? `<div class="stat-sub">${d.stats.equipos_aprobados} aprobados</div>` : ''}
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon v">👥</div>
+        <div class="stat-num">${d.stats.jugadores_total}</div>
+        <div class="stat-label">Jugadores</div>
+        ${d.stats.jugadores_aprobados ? `<div class="stat-sub">${d.stats.jugadores_aprobados} aprobados</div>` : ''}
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon g">📅</div>
+        <div class="stat-num">${d.stats.partidos_programados + d.stats.partidos_finalizados}</div>
+        <div class="stat-label">Partidos</div>
+        <div class="stat-sub">${d.stats.partidos_finalizados} finalizados</div>
+      </div>
+    `;
+
+    // Equipos pendientes
+    const equipos = await apiCall('listarEquipos');
+    if (equipos.success) {
+      const pendientes = equipos.data.filter(e => e.estado === 'INSCRITO');
+      const cont = document.getElementById('equiposPendientes');
+      if (pendientes.length === 0) {
+        cont.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>Todos los equipos están aprobados</div>';
+      } else {
+        cont.innerHTML = pendientes.slice(0, 5).map(e => `
+          <div class="lista-item">
+            <div class="lista-item-info">
+              ${renderEscudoMini(e.escudo_url, e.nombre_club)}
+              <div>
+                <div class="lista-item-nombre">${escapeHtml(e.nombre_club)}</div>
+                <div class="lista-item-meta">${e.categoria}${e.grupo ? ' · Grupo ' + e.grupo : ''}</div>
+              </div>
+            </div>
+            <button class="btn btn-secundario btn-sm" onclick="window.parent.navigateTo('admin-equipos.html')">Ver</button>
+          </div>
+        `).join('');
+        if (pendientes.length > 5) {
+          cont.innerHTML += `<p style="text-align:center;margin-top:12px;font-size:13px;color:var(--gris);">+ ${pendientes.length - 5} más</p>`;
+        }
+      }
+    }
+
+    // Próximos partidos
+    const proxCont = document.getElementById('proximosPartidos');
+    if (d.proximos && d.proximos.length > 0) {
+      proxCont.innerHTML = d.proximos.slice(0, 5).map(p => `
+        <div class="partido-mini">
+          <div class="partido-equipos">${escapeHtml(p.nombre_local)} vs ${escapeHtml(p.nombre_visitante)}</div>
+          <div class="partido-meta">${p.fecha} · ${p.hora}</div>
+        </div>
+      `).join('');
+    } else {
+      proxCont.innerHTML = '<div class="empty"><div class="empty-icon">📅</div>No hay partidos próximos</div>';
+    }
+
+  } catch (e) {
+    toastError('Error: ' + e.message);
+  }
+}
+
+cargarDashboard();
+</script>
+
+</body>
+</html>
