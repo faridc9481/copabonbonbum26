@@ -978,9 +978,9 @@ const state = {
 // ═══════════════════════════════════════════════════════════════
 
 function navegarA(ruta) {
-  // Si es 'login', abrir login.html (próximo archivo)
+  // Si es 'login', abrir la pantalla de login
   if (ruta === 'login') {
-    alert('Próximamente: pantalla de login para admin / planillador / entrenador.');
+    window.location.href = 'login.html';
     return;
   }
 
