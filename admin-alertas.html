@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alertas</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+  }
+
+  .resumen-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .resumen-card {
+    background: var(--blanco);
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 4px solid;
+  }
+  .resumen-CRITICA { border-left-color: var(--rojo); }
+  .resumen-ADVERTENCIA { border-left-color: var(--amarillo-osc); }
+  .resumen-INFO { border-left-color: var(--azul-info, #0070D2); }
+  .resumen-card-num {
+    font-family: 'Nunito', sans-serif;
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .resumen-card-label {
+    font-size: 12px;
+    color: var(--gris);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .alerta-card {
+    background: var(--blanco);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    border-left: 4px solid;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: start;
+  }
+  .alerta-CRITICA { border-left-color: var(--rojo); background: rgba(227,6,19,0.02); }
+  .alerta-ADVERTENCIA { border-left-color: var(--amarillo-osc); background: rgba(255,204,0,0.04); }
+  .alerta-INFO { border-left-color: #0070D2; background: rgba(0,112,210,0.02); }
+
+  .alerta-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .alerta-tipo {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .sev-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .sev-CRITICA { background: var(--rojo); color: var(--blanco); }
+  .sev-ADVERTENCIA { background: var(--amarillo); color: var(--texto); }
+  .sev-INFO { background: rgba(0,112,210,0.15); color: #0070D2; }
+  .alerta-descripcion {
+    font-size: 14px;
+    margin: 6px 0;
+  }
+  .alerta-meta {
+    font-size: 12px;
+    color: var(--gris);
+    margin-top: 6px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Alertas del sistema</h1>
+      <p class="page-subtitle">Validaciones detectadas que requieren tu atención</p>
+    </div>
+    <button class="btn btn-secundario" onclick="cargar()">🔄 Refrescar</button>
+  </div>
+
+  <div id="resumen" class="resumen-cards"></div>
+
+  <div class="toolbar">
+    <select id="filtroSev" class="filtro-select">
+      <option value="">Todas las severidades</option>
+      <option value="CRITICA">🔴 Críticas</option>
+      <option value="ADVERTENCIA">🟡 Advertencias</option>
+      <option value="INFO">🔵 Informativas</option>
+    </select>
+    <select id="filtroEstado" class="filtro-select">
+      <option value="PENDIENTE" selected>Pendientes</option>
+      <option value="RESUELTA">Resueltas</option>
+      <option value="">Todas</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando alertas...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+// Nota: las alertas están en la hoja 17_ALERTAS.
+// Como el backend no tiene un endpoint específico, vamos a leer las alertas
+// usando una llamada genérica. Por ahora, simulamos con datos del Sheet.
+// Si querés CRUD completo, hay que agregar endpoints listarAlertas, marcarResuelta.
+
+let alertasGlobal = [];
+let filtros = { sev: '', estado: 'PENDIENTE' };
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando alertas...</div>';
+
+  // Llamamos a un endpoint que vamos a agregar al backend
+  const r = await apiCall('listarAlertas');
+
+  if (!r.success) {
+    // Si el endpoint aún no existe, mostramos un mensaje útil
+    if (r.codigo === 'ACCION_DESCONOCIDA') {
+      cont.innerHTML = `
+        <div class="card">
+          <div class="empty">
+            <div class="empty-icon">🔔</div>
+            <p style="font-weight:700;margin-bottom:10px;">Endpoint pendiente en backend</p>
+            <p style="font-size:13px;color:var(--gris);">
+              Las alertas se generan automáticamente en la hoja <strong>17_ALERTAS</strong>.<br>
+              Mientras tanto, podés revisarlas directamente en el Sheet.
+            </p>
+            <p style="margin-top:14px;">
+              <a href="https://docs.google.com/spreadsheets/d/1MJ1-uO94Z1zkEPtwytQSHny6pLu9HeJuqyv2wDxPouA/edit" target="_blank" class="btn btn-primario btn-sm">Abrir hoja 17_ALERTAS</a>
+            </p>
+          </div>
+        </div>
+      `;
+    } else {
+      cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>';
+    }
+    document.getElementById('resumen').innerHTML = '';
+    return;
+  }
+
+  alertasGlobal = r.data || [];
+  renderResumen();
+  renderAlertas();
+}
+
+function renderResumen() {
+  const pendientes = alertasGlobal.filter(a => String(a.estado).toUpperCase() === 'PENDIENTE');
+  const criticas = pendientes.filter(a => a.severidad === 'CRITICA').length;
+  const advertencias = pendientes.filter(a => a.severidad === 'ADVERTENCIA').length;
+  const infos = pendientes.filter(a => a.severidad === 'INFO').length;
+
+  document.getElementById('resumen').innerHTML = `
+    <div class="resumen-card resumen-CRITICA">
+      <div class="resumen-card-num">${criticas}</div>
+      <div class="resumen-card-label">🔴 Críticas</div>
+    </div>
+    <div class="resumen-card resumen-ADVERTENCIA">
+      <div class="resumen-card-num">${advertencias}</div>
+      <div class="resumen-card-label">🟡 Advertencias</div>
+    </div>
+    <div class="resumen-card resumen-INFO">
+      <div class="resumen-card-num">${infos}</div>
+      <div class="resumen-card-label">🔵 Informativas</div>
+    </div>
+  `;
+}
+
+function renderAlertas() {
+  const cont = document.getElementById('contenido');
+
+  let lista = alertasGlobal;
+  if (filtros.sev) lista = lista.filter(a => a.severidad === filtros.sev);
+  if (filtros.estado) lista = lista.filter(a => String(a.estado).toUpperCase() === filtros.estado);
+
+  // Ordenar: críticas primero, luego más recientes
+  const ord = { CRITICA: 0, ADVERTENCIA: 1, INFO: 2 };
+  lista.sort((a, b) => {
+    const diff = (ord[a.severidad] || 9) - (ord[b.severidad] || 9);
+    if (diff !== 0) return diff;
+    return String(b.timestamp || '').localeCompare(String(a.timestamp || ''));
+  });
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">✅</div>
+          <p style="font-weight:700;">${filtros.estado === 'PENDIENTE' ? 'Sin alertas pendientes' : 'Sin alertas que coincidan'}</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">
+            ${filtros.estado === 'PENDIENTE' ? 'Todas las validaciones están al día.' : 'Probá cambiar los filtros.'}
+          </p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  lista.forEach(a => {
+    html += `
+      <div class="alerta-card alerta-${a.severidad}">
+        <div>
+          <div class="alerta-header">
+            <span class="sev-badge sev-${a.severidad}">${a.severidad}</span>
+            <span class="alerta-tipo">${escapeHtml(a.tipo)}</span>
+          </div>
+          <div class="alerta-descripcion">${escapeHtml(a.descripcion)}</div>
+          <div class="alerta-meta">
+            <span>📍 ${escapeHtml(a.tipo_entidad || '—')}: <strong>${escapeHtml(a.id_entidad_afectada || '—')}</strong></span>
+            <span>⏰ ${escapeHtml(a.timestamp || '')}</span>
+            <span>📌 Estado: ${badgeEstado(a.estado || 'PENDIENTE')}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${String(a.estado).toUpperCase() === 'PENDIENTE' ? `<button class="btn btn-verde btn-sm" onclick="marcarResuelta('${a.id}')">✓ Resolver</button>` : ''}
+        </div>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+document.getElementById('filtroSev').addEventListener('change', e => { filtros.sev = e.target.value; renderAlertas(); });
+document.getElementById('filtroEstado').addEventListener('change', e => { filtros.estado = e.target.value; renderAlertas(); });
+
+async function marcarResuelta(idAlerta) {
+  const ok = await confirmar('¿Marcar esta alerta como resuelta?', { txtSi: 'Sí, resolver', peligroso: false });
+  if (!ok) return;
+
+  const r = await apiCall('resolverAlerta', { id: idAlerta });
+  if (!r.success) {
+    if (r.codigo === 'ACCION_DESCONOCIDA') {
+      toastWarning('Endpoint pendiente. Por ahora, marcala manualmente en la hoja 17_ALERTAS.');
+    } else {
+      toastError(r.mensaje);
+    }
+    return;
+  }
+  toastSuccess('Alerta resuelta');
+  cargar();
+}
+
+cargar();
+</script>
+
+</body>
+</html>

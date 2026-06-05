@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablas y llaves</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+    min-width: 180px;
+  }
+
+  .tabs-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--gris-cl);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--texto); }
+  .tab-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .tab-panel { display: none; }
+  .tab-panel.activo { display: block; }
+
+  table.tabla-pos { width: 100%; border-collapse: collapse; }
+  table.tabla-pos th {
+    background: var(--texto);
+    color: var(--blanco);
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-family: 'Nunito', sans-serif;
+  }
+  table.tabla-pos th.num { text-align: center; }
+  table.tabla-pos td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--gris-cl);
+    font-size: 14px;
+  }
+  table.tabla-pos td.num { text-align: center; }
+  table.tabla-pos td.pos {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    width: 50px;
+    text-align: center;
+    color: var(--gris);
+  }
+  table.tabla-pos tr.clas { background: rgba(45,169,79,0.05); }
+  table.tabla-pos tr.clas td.pos { color: var(--verde); }
+  table.tabla-pos td.pts {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--rojo);
+  }
+
+  .goleador-row {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 14px;
+    border-bottom: 1px solid var(--gris-cl);
+  }
+  .goleador-row:last-child { border-bottom: none; }
+  .goleador-pos {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gris);
+    text-align: center;
+  }
+  .goleador-pos.top1 { color: var(--rojo); }
+  .goleador-pos.top2 { color: var(--amarillo-osc); }
+  .goleador-pos.top3 { color: var(--verde); }
+  .goleador-nombre { font-weight: 700; }
+  .goleador-equipo { font-size: 12px; color: var(--gris); }
+  .goleador-goles {
+    font-family: 'Nunito', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--rojo);
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Tablas y llaves</h1>
+      <p class="page-subtitle">Vista administrativa con opción de recalcular manualmente</p>
+    </div>
+    <button class="btn btn-amarillo" onclick="recalcularManual()">🔄 Recalcular ahora</button>
+  </div>
+
+  <div class="toolbar">
+    <label style="font-weight:700;font-size:13px;">Categoría:</label>
+    <select id="filtroCategoria" class="filtro-select">
+      <option value="">Seleccionar categoría...</option>
+    </select>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-btn activo" data-tab="tabla" onclick="cambiarTab('tabla', this)">📊 Tabla posiciones</button>
+    <button class="tab-btn" data-tab="goleadores" onclick="cambiarTab('goleadores', this)">⚽ Goleadores</button>
+    <button class="tab-btn" data-tab="llaves" onclick="cambiarTab('llaves', this)">🏆 Llaves</button>
+  </div>
+
+  <div class="tab-panel activo" id="tab-tabla">
+    <div id="tablaContent">
+      <div class="card"><div class="empty"><div class="empty-icon">📊</div>Seleccioná una categoría</div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-goleadores">
+    <div id="goleadoresContent">
+      <div class="card"><div class="empty"><div class="empty-icon">⚽</div>Seleccioná una categoría</div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-llaves">
+    <div id="llavesContent">
+      <div class="card"><div class="empty"><div class="empty-icon">🏆</div>Seleccioná una categoría</div></div>
+    </div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let categoriasGlobal = [];
+let catActual = null;
+let tabActual = 'tabla';
+
+async function init() {
+  const r = await apiCall('listarCategorias');
+  if (!r.success) return;
+
+  categoriasGlobal = r.data;
+  const sel = document.getElementById('filtroCategoria');
+  sel.innerHTML = '<option value="">Seleccionar categoría...</option>' +
+    categoriasGlobal.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)} (${c.modalidad})</option>`).join('');
+
+  sel.addEventListener('change', e => {
+    catActual = e.target.value;
+    cargarTodo();
+  });
+}
+
+function cambiarTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('tab-' + tab).classList.add('activo');
+  tabActual = tab;
+}
+
+async function cargarTodo() {
+  if (!catActual) {
+    ['tablaContent', 'goleadoresContent', 'llavesContent'].forEach(id => {
+      document.getElementById(id).innerHTML = '<div class="card"><div class="empty">Seleccioná una categoría</div></div>';
+    });
+    return;
+  }
+  cargarTabla();
+  cargarGoleadores();
+  cargarLlaves();
+}
+
+async function cargarTabla() {
+  const cont = document.getElementById('tablaContent');
+  cont.innerHTML = '<div class="card"><div class="loading">Cargando tabla...</div></div>';
+
+  const r = await apiCall('getTablaPosiciones', { categoria: catActual });
+  if (!r.success || !r.data || r.data.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">📊</div>
+          <p style="font-weight:700;">No hay tabla calculada para esta categoría</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">
+            Las tablas se calculan automáticamente cada 5 minutos, o podés forzar el recálculo con el botón "Recalcular ahora".
+          </p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Agrupar por grupo
+  const porGrupo = {};
+  r.data.forEach(f => {
+    const g = f.grupo || '_';
+    if (!porGrupo[g]) porGrupo[g] = [];
+    porGrupo[g].push(f);
+  });
+
+  let html = '';
+  Object.keys(porGrupo).sort().forEach(g => {
+    html += `<div class="card" style="margin-bottom:14px;">`;
+    if (g !== '_') {
+      html += `<div class="card-titulo">Grupo ${escapeHtml(g)}</div>`;
+    } else {
+      html += `<div class="card-titulo">Tabla general</div>`;
+    }
+    html += `
+      <div style="overflow-x:auto;">
+        <table class="tabla-pos">
+          <thead>
+            <tr>
+              <th class="num">#</th><th>Equipo</th>
+              <th class="num">PJ</th><th class="num">G</th><th class="num">E</th><th class="num">P</th>
+              <th class="num">GF</th><th class="num">GC</th><th class="num">DG</th>
+              <th class="num">PJ</th><th class="num">PA</th><th class="num">PR</th>
+              <th class="num">PTS</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${porGrupo[g].map(f => `
+              <tr class="${f.clasificado ? 'clas' : ''}">
+                <td class="pos">${f.posicion}</td>
+                <td><div style="display:flex;align-items:center;gap:10px;">${renderEscudoMini(f.escudo_url, f.nombre_equipo)}<strong>${escapeHtml(f.nombre_equipo)}</strong></div></td>
+                <td class="num">${f.pj}</td>
+                <td class="num">${f.g}</td>
+                <td class="num">${f.e}</td>
+                <td class="num">${f.p}</td>
+                <td class="num">${f.gf}</td>
+                <td class="num">${f.gc}</td>
+                <td class="num">${f.dg > 0 ? '+' + f.dg : f.dg}</td>
+                <td class="num">${f.pts_juego}</td>
+                <td class="num" title="Pts Actitud">${f.pts_actitud}</td>
+                <td class="num" title="Pts Protocolo">${f.pts_protocolo}</td>
+                <td class="num pts">${f.pts_total}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px;color:var(--gris);margin-top:10px;">
+        PJ=jugados, G=ganados, E=empatados, P=perdidos, GF/GC=goles favor/contra, DG=diferencia, PJ=pts juego, PA=actitud, PR=protocolo, PTS=total.
+        <span style="color:var(--verde);font-weight:700;">Verde</span> = clasificado.
+      </p>
+    </div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+async function cargarGoleadores() {
+  const cont = document.getElementById('goleadoresContent');
+  cont.innerHTML = '<div class="card"><div class="loading">Cargando goleadores...</div></div>';
+
+  const r = await apiCall('getGoleadores', { categoria: catActual, limit: 50 });
+  if (!r.success || !r.data || r.data.length === 0) {
+    cont.innerHTML = '<div class="card"><div class="empty"><div class="empty-icon">⚽</div>Aún no hay goleadores en esta categoría</div></div>';
+    return;
+  }
+
+  let html = '<div class="card"><div class="card-titulo">Top goleadores</div>';
+  r.data.forEach(g => {
+    const topClass = g.posicion === 1 ? 'top1' : g.posicion === 2 ? 'top2' : g.posicion === 3 ? 'top3' : '';
+    html += `
+      <div class="goleador-row">
+        <div class="goleador-pos ${topClass}">${g.posicion}</div>
+        <div>
+          <div class="goleador-nombre">${escapeHtml(g.nombre_jugador)}</div>
+          <div class="goleador-equipo">${escapeHtml(g.nombre_equipo)} · ${g.partidos_jugados} PJ</div>
+        </div>
+        <div class="goleador-goles">${g.goles}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+async function cargarLlaves() {
+  const cont = document.getElementById('llavesContent');
+  cont.innerHTML = '<div class="card"><div class="loading">Cargando llaves...</div></div>';
+
+  const cat = categoriasGlobal.find(c => c.id === catActual);
+  if (!cat || !cat.tiene_campeon) {
+    cont.innerHTML = '<div class="card"><div class="empty"><div class="empty-icon">🏆</div>Esta categoría no tiene fase eliminatoria<br><span style="font-size:13px;">(festivales sin campeón según Art. 10)</span></div></div>';
+    return;
+  }
+
+  const r = await apiCall('getLlaves', { categoria: catActual });
+  if (!r.success || !r.data || r.data.length === 0) {
+    cont.innerHTML = '<div class="card"><div class="empty"><div class="empty-icon">🏆</div>Aún no se han generado las llaves.<br><span style="font-size:13px;">Se generan automáticamente cuando termine la fase de grupos.</span></div></div>';
+    return;
+  }
+
+  // Agrupar por fase
+  const porFase = {};
+  r.data.forEach(l => {
+    if (!porFase[l.fase]) porFase[l.fase] = [];
+    porFase[l.fase].push(l);
+  });
+
+  const ordenFases = ['OCTAVOS', 'CUARTOS', 'SEMIS', 'FINAL_3_4', 'FINAL'];
+  const nombresFases = {
+    OCTAVOS: 'Octavos de Final',
+    CUARTOS: 'Cuartos de Final',
+    SEMIS: 'Semifinales',
+    FINAL_3_4: 'Tercer puesto',
+    FINAL: 'Final'
+  };
+
+  let html = '';
+  ordenFases.forEach(fase => {
+    if (!porFase[fase]) return;
+    html += `<div class="card" style="margin-bottom:14px;">
+      <div class="card-titulo">${nombresFases[fase]}</div>`;
+    porFase[fase].forEach(l => {
+      html += `
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--gris-cl);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${renderEscudoMini(l.escudo_local, l.nombre_local || l.fuente_local)}
+            <strong>${escapeHtml(l.nombre_local || l.fuente_local)}</strong>
+          </div>
+          <div style="font-family:'Nunito';font-weight:900;font-size:14px;color:var(--gris);">VS</div>
+          <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;text-align:right;">
+            <strong>${escapeHtml(l.nombre_visitante || l.fuente_visit)}</strong>
+            ${renderEscudoMini(l.escudo_visitante, l.nombre_visitante || l.fuente_visit)}
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  });
+  cont.innerHTML = html;
+}
+
+async function recalcularManual() {
+  if (!catActual) {
+    const ok = await confirmar('Recalcular TODAS las tablas, goleadores y llaves de TODAS las categorías? Puede tardar 10-20 segundos.', { txtSi: 'Sí, recalcular todo', peligroso: false });
+    if (!ok) return;
+
+    toast('Recalculando todo, esperá unos segundos...', 'warning', 8000);
+    const r = await apiCall('recalcularTodo');
+    if (!r.success) { toastError(r.mensaje); return; }
+    toastSuccess(`Recalculo completo en ${r.data.duracion_segundos}s`);
+    cargarTodo();
+  } else {
+    const ok = await confirmar(`Recalcular tabla, goleadores y llaves de ${catActual}?`, { txtSi: 'Sí, recalcular', peligroso: false });
+    if (!ok) return;
+
+    const r = await apiCall('recalcularCategoria', { categoria: catActual });
+    if (!r.success) { toastError(r.mensaje); return; }
+    toastSuccess(r.mensaje);
+    cargarTodo();
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>

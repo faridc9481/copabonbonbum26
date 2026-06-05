@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partidos</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .toolbar .search-box { flex: 1; min-width: 200px; }
+  .filtro-select {
+    padding: 10px 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 100px;
+    font-size: 13px;
+    font-family: 'Mulish', sans-serif;
+    background: var(--blanco);
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .partido-row {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 16px;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .partido-row:hover { border-color: var(--rojo); box-shadow: var(--shadow); }
+  .partido-row.vivo { border-left: 5px solid var(--rojo); background: rgba(227,6,19,0.02); }
+  .partido-row.finalizado { background: var(--gris-bg); }
+
+  .partido-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .partido-meta-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--gris);
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .partido-equipos {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+  .partido-equipo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .partido-equipo.visit { flex-direction: row-reverse; }
+  .partido-equipo-nombre {
+    font-weight: 700;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .partido-score {
+    font-family: 'Nunito', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--rojo);
+    min-width: 80px;
+    text-align: center;
+    letter-spacing: -1px;
+  }
+  .partido-score.vs {
+    font-size: 13px;
+    color: var(--gris);
+    letter-spacing: 2px;
+  }
+  .partido-detalle-meta {
+    font-size: 12px;
+    color: var(--gris);
+    margin-top: 4px;
+  }
+  .partido-acciones {
+    display: flex;
+    gap: 6px;
+    flex-direction: column;
+  }
+  .partido-acciones-row { display: flex; gap: 6px; }
+
+  @media (max-width: 800px) {
+    .partido-row { grid-template-columns: 1fr; }
+    .partido-acciones { flex-direction: row; flex-wrap: wrap; }
+  }
+
+  .modal-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--gris-cl);
+    margin-bottom: 20px;
+  }
+  .modal-tab-btn {
+    background: transparent;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  .modal-tab-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .modal-tab-content { display: none; }
+  .modal-tab-content.activo { display: block; }
+
+  .score-input-group {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 18px;
+    background: var(--gris-bg);
+    border-radius: 12px;
+  }
+  .score-input {
+    width: 80px;
+    height: 60px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    border: 2px solid var(--gris-cl);
+    border-radius: 10px;
+    background: var(--blanco);
+  }
+  .score-equipo-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .gol-row, .tarjeta-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    padding: 8px;
+    background: var(--gris-bg);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .lista-evento {
+    margin-bottom: 14px;
+  }
+  .lista-evento h5 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--texto-2);
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Partidos</h1>
+      <p class="page-subtitle">Programación, resultados y gestión de partidos</p>
+    </div>
+    <button class="btn btn-primario" onclick="abrirCrear()">+ Programar partido</button>
+  </div>
+
+  <div class="toolbar">
+    <select id="filtroFecha" class="filtro-select">
+      <option value="">Todas las fechas</option>
+    </select>
+    <select id="filtroCategoria" class="filtro-select">
+      <option value="">Todas las categorías</option>
+    </select>
+    <select id="filtroEstado" class="filtro-select">
+      <option value="">Todos los estados</option>
+      <option value="PROGRAMADO">Programados</option>
+      <option value="EN_CURSO">En curso</option>
+      <option value="FINALIZADO">Finalizados</option>
+      <option value="WO_LOCAL">WO local</option>
+      <option value="WO_VISITANTE">WO visitante</option>
+      <option value="SUSPENDIDO">Suspendidos</option>
+      <option value="APLAZADO">Aplazados</option>
+    </select>
+  </div>
+
+  <div id="contenido">
+    <div class="loading">Cargando partidos...</div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let partidosGlobal = [];
+let equiposGlobal = [];
+let categoriasGlobal = [];
+let sedesGlobal = [];
+
+let filtros = { fecha: '', categoria: '', estado: '' };
+
+async function cargar() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="loading">Cargando partidos...</div>';
+
+  const [rPart, rEq, rCats, rSedes] = await Promise.all([
+    apiCall('listarPartidos'),
+    apiCall('listarEquipos'),
+    apiCall('listarCategorias'),
+    apiCall('getSedes')
+  ]);
+
+  if (!rPart.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(rPart.mensaje) + '</div>';
+    return;
+  }
+
+  partidosGlobal = rPart.data || [];
+  equiposGlobal = rEq.success ? rEq.data : [];
+  categoriasGlobal = rCats.success ? rCats.data : [];
+  sedesGlobal = rSedes.success ? rSedes.data : [];
+
+  // Filtros
+  const fechas = [...new Set(partidosGlobal.map(p => p.fecha).filter(Boolean))].sort();
+  document.getElementById('filtroFecha').innerHTML = '<option value="">Todas las fechas</option>' +
+    fechas.map(f => `<option value="${f}">${formatearFechaCorta(f)}</option>`).join('');
+
+  document.getElementById('filtroCategoria').innerHTML = '<option value="">Todas las categorías</option>' +
+    categoriasGlobal.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+
+  renderPartidos();
+}
+
+function renderPartidos() {
+  const cont = document.getElementById('contenido');
+
+  let lista = partidosGlobal;
+  if (filtros.fecha) lista = lista.filter(p => p.fecha === filtros.fecha);
+  if (filtros.categoria) lista = lista.filter(p => p.categoria === filtros.categoria);
+  if (filtros.estado) lista = lista.filter(p => p.estado === filtros.estado);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">📅</div>
+          <p style="font-weight:700;">No hay partidos ${tieneFiltros() ? 'con esos filtros' : 'programados'}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Agrupar por fecha
+  const porFecha = {};
+  lista.forEach(p => {
+    const f = p.fecha || 'Sin fecha';
+    if (!porFecha[f]) porFecha[f] = [];
+    porFecha[f].push(p);
+  });
+
+  let html = '';
+  Object.keys(porFecha).sort().forEach(fecha => {
+    html += `<h3 style="font-family:'Nunito';font-weight:900;color:var(--rojo);font-size:16px;margin:24px 0 12px;letter-spacing:1px;text-transform:uppercase;">${formatearFechaCorta(fecha)}</h3>`;
+
+    porFecha[fecha].sort((a, b) => (a.hora || '').localeCompare(b.hora || '')).forEach(p => {
+      const esVivo = p.estado === 'EN_CURSO';
+      const esFinalizado = ['FINALIZADO', 'WO_LOCAL', 'WO_VISITANTE'].includes(p.estado);
+      const mostrarScore = esVivo || esFinalizado;
+
+      html += `
+        <div class="partido-row ${esVivo ? 'vivo' : ''} ${esFinalizado ? 'finalizado' : ''}">
+          <div>
+            <div class="partido-meta-top">
+              <span>🕐 ${p.hora || '—'}</span>
+              <span>📍 ${escapeHtml(p.sede_nombre || 'Sin sede')}</span>
+              <span class="badge badge-info">${p.categoria}${p.grupo ? ' · G ' + p.grupo : ''}</span>
+              ${esVivo ? '<span class="badge badge-danger">🔴 EN VIVO</span>' : ''}
+              ${esFinalizado ? badgeEstado(p.estado) : ''}
+            </div>
+            <div class="partido-equipos">
+              <div class="partido-equipo">
+                ${renderEscudoMini(p.escudo_local, p.nombre_local)}
+                <div class="partido-equipo-nombre">${escapeHtml(p.nombre_local || '?')}</div>
+              </div>
+              <div class="partido-score ${!mostrarScore ? 'vs' : ''}">
+                ${mostrarScore ? `${p.gol_local}–${p.gol_visitante}` : 'VS'}
+              </div>
+              <div class="partido-equipo visit">
+                <div class="partido-equipo-nombre">${escapeHtml(p.nombre_visitante || '?')}</div>
+                ${renderEscudoMini(p.escudo_visitante, p.nombre_visitante)}
+              </div>
+            </div>
+            ${p.arbitro_principal ? `<div class="partido-detalle-meta">⚽ Árbitro: ${escapeHtml(p.arbitro_principal)}</div>` : ''}
+          </div>
+          <div class="partido-acciones">
+            <div class="partido-acciones-row">
+              <button class="btn btn-secundario btn-sm" onclick="verDetalle('${p.id}')">Ver</button>
+              <button class="btn btn-primario btn-sm" onclick="registrarResultado('${p.id}')">${esFinalizado ? 'Editar resultado' : 'Cargar resultado'}</button>
+            </div>
+            <div class="partido-acciones-row">
+              <button class="btn btn-secundario btn-sm" onclick="editarPartido('${p.id}')">Editar</button>
+              <button class="btn btn-secundario btn-sm" onclick="accionEspecial('${p.id}')">⋯</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  });
+
+  cont.innerHTML = html;
+}
+
+function tieneFiltros() { return filtros.fecha || filtros.categoria || filtros.estado; }
+
+document.getElementById('filtroFecha').addEventListener('change', e => { filtros.fecha = e.target.value; renderPartidos(); });
+document.getElementById('filtroCategoria').addEventListener('change', e => { filtros.categoria = e.target.value; renderPartidos(); });
+document.getElementById('filtroEstado').addEventListener('change', e => { filtros.estado = e.target.value; renderPartidos(); });
+
+// ═══════════════════════════════════════════════════════════════
+// VER DETALLE
+// ═══════════════════════════════════════════════════════════════
+
+async function verDetalle(idPartido) {
+  showModal('Cargando partido...', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerPartido', { id: idPartido });
+  if (!r.success) { toastError(r.mensaje); closeModal(); return; }
+
+  const p = r.data.partido;
+  const goles = r.data.goles || [];
+  const tarjetas = r.data.tarjetas || [];
+  const alineaciones = r.data.alineaciones || [];
+
+  showModal(`${p.nombre_local} vs ${p.nombre_visitante}`, `
+    <div style="background:var(--gris-bg);padding:16px;border-radius:12px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:12px;color:var(--gris);margin-bottom:6px;">${escapeHtml(p.categoria)}${p.grupo ? ' · Grupo ' + p.grupo : ''} · ${escapeHtml(p.sede_nombre || '')}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:20px;">
+        <div style="text-align:right;flex:1;">${escapeHtml(p.nombre_local)}</div>
+        <div style="font-family:'Nunito';font-size:36px;font-weight:900;color:var(--rojo);">${p.gol_local || 0}–${p.gol_visitante || 0}</div>
+        <div style="text-align:left;flex:1;">${escapeHtml(p.nombre_visitante)}</div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;">${badgeEstado(p.estado)}</div>
+    </div>
+
+    <div class="lista-evento">
+      <h5>⚽ Goles (${goles.length})</h5>
+      ${goles.length === 0 ? '<p style="font-size:13px;color:var(--gris);">Sin goles registrados</p>' : goles.map(g => `
+        <div class="gol-row">
+          <strong>${g.minuto || '?'}'</strong>
+          <span>${escapeHtml(g.jugador_nombre || '?')}</span>
+          <span style="font-size:11px;color:var(--gris);">${g.tipo || 'NORMAL'}</span>
+          <span style="font-size:11px;">T${g.tiempo}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="lista-evento">
+      <h5>🟨 Tarjetas (${tarjetas.length})</h5>
+      ${tarjetas.length === 0 ? '<p style="font-size:13px;color:var(--gris);">Sin tarjetas</p>' : tarjetas.map(t => `
+        <div class="tarjeta-row">
+          <strong>${t.minuto || '?'}'</strong>
+          <span>${escapeHtml(t.jugador_nombre || '?')}</span>
+          <span class="badge ${t.tipo === 'ROJA_DIRECTA' || t.tipo === 'AMARILLA_DOBLE' ? 'badge-danger' : 'badge-warning'}">${t.tipo}</span>
+          <span style="font-size:11px;">T${t.tiempo}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="lista-evento">
+      <h5>👥 Alineaciones (${alineaciones.length})</h5>
+      ${alineaciones.length === 0 ? '<p style="font-size:13px;color:var(--gris);">Sin alineaciones registradas</p>' : `<p style="font-size:13px;color:var(--gris);">${alineaciones.length} registros de alineación</p>`}
+    </div>
+
+    ${p.foto_planilla_url ? `<div style="margin-top:14px;"><a href="${escapeHtml(p.foto_planilla_url)}" target="_blank" class="btn btn-secundario btn-sm">📷 Ver planilla escaneada</a></div>` : ''}
+
+    <div class="form-actions">
+      <button class="btn btn-secundario" onclick="closeModal()">Cerrar</button>
+      <button class="btn btn-primario" onclick="closeModal(); registrarResultado('${p.id}');">Editar resultado</button>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CREAR PARTIDO
+// ═══════════════════════════════════════════════════════════════
+
+function abrirCrear() {
+  showModal('Programar partido', renderFormCrear(null));
+  conectarFormCrear(null);
+}
+
+async function editarPartido(idPartido) {
+  const p = partidosGlobal.find(x => x.id === idPartido);
+  if (!p) return;
+  showModal('Editar partido', renderFormCrear(p));
+  conectarFormCrear(p);
+}
+
+function renderFormCrear(p) {
+  const catOpt = categoriasGlobal.map(c =>
+    `<option value="${c.id}" ${p && p.categoria === c.id ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`
+  ).join('');
+
+  const sedesOpt = sedesGlobal.map(s =>
+    `<option value="${s.id}" ${p && p.id_sede === s.id ? 'selected' : ''}>${escapeHtml(s.nombre)}</option>`
+  ).join('');
+
+  return `
+    <form id="formCrear">
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Fecha <span class="req">*</span></label>
+          <input type="date" id="fecha" class="form-input" value="${p ? p.fecha || '' : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Hora <span class="req">*</span></label>
+          <input type="time" id="hora" class="form-input" value="${p ? p.hora || '' : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Categoría <span class="req">*</span></label>
+          <select id="categoria" class="form-select" required ${p ? 'disabled' : ''}>
+            <option value="">Seleccionar...</option>
+            ${catOpt}
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Grupo / Fase</label>
+          <select id="fase" class="form-select">
+            <option value="GRUPOS" ${p && p.fase === 'GRUPOS' ? 'selected' : ''}>Fase de grupos</option>
+            <option value="OCTAVOS" ${p && p.fase === 'OCTAVOS' ? 'selected' : ''}>Octavos</option>
+            <option value="CUARTOS" ${p && p.fase === 'CUARTOS' ? 'selected' : ''}>Cuartos</option>
+            <option value="SEMIS" ${p && p.fase === 'SEMIS' ? 'selected' : ''}>Semifinal</option>
+            <option value="FINAL_3_4" ${p && p.fase === 'FINAL_3_4' ? 'selected' : ''}>Tercer puesto</option>
+            <option value="FINAL" ${p && p.fase === 'FINAL' ? 'selected' : ''}>Final</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Equipo local <span class="req">*</span></label>
+          <select id="equipoLocal" class="form-select" required ${p ? 'disabled' : ''}>
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Equipo visitante <span class="req">*</span></label>
+          <select id="equipoVisit" class="form-select" required ${p ? 'disabled' : ''}>
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Grupo (letra)</label>
+          <select id="grupo" class="form-select">
+            <option value="">Sin asignar</option>
+            <option value="A" ${p && p.grupo === 'A' ? 'selected' : ''}>A</option>
+            <option value="B" ${p && p.grupo === 'B' ? 'selected' : ''}>B</option>
+            <option value="C" ${p && p.grupo === 'C' ? 'selected' : ''}>C</option>
+            <option value="D" ${p && p.grupo === 'D' ? 'selected' : ''}>D</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Sede / cancha <span class="req">*</span></label>
+          <select id="sede" class="form-select" required>
+            <option value="">Seleccionar...</option>
+            ${sedesOpt}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">N° fecha</label>
+          <input type="text" id="nFecha" class="form-input" value="${p ? escapeHtml(p.n_fecha || '') : ''}" placeholder="Ej: Fecha 1">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">N° partido</label>
+          <input type="text" id="nPartido" class="form-input" value="${p ? escapeHtml(p.n_partido || '') : ''}" placeholder="Ej: 23">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Árbitro principal</label>
+        <input type="text" id="arbitro" class="form-input" value="${p ? escapeHtml(p.arbitro_principal || '') : ''}">
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Observaciones</label>
+        <textarea id="obs" class="form-textarea" rows="2">${p ? escapeHtml(p.observaciones || '') : ''}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${p ? 'Guardar cambios' : 'Programar'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarFormCrear(partido) {
+  // Cuando cambia la categoría, filtrar equipos
+  function actualizarEquipos() {
+    const catSel = document.getElementById('categoria').value;
+    const equiposDeCat = equiposGlobal.filter(e => e.categoria === catSel);
+
+    const opciones = '<option value="">Seleccionar...</option>' +
+      equiposDeCat.map(e => `<option value="${e.id}">${escapeHtml(e.nombre_club)}${e.grupo ? ' (Gpo ' + e.grupo + ')' : ''}</option>`).join('');
+
+    const selL = document.getElementById('equipoLocal');
+    const selV = document.getElementById('equipoVisit');
+    if (selL && !selL.disabled) {
+      selL.innerHTML = opciones;
+      if (partido) selL.value = partido.id_equipo_local || '';
+    }
+    if (selV && !selV.disabled) {
+      selV.innerHTML = opciones;
+      if (partido) selV.value = partido.id_equipo_visitante || '';
+    }
+  }
+
+  if (!partido) {
+    document.getElementById('categoria').addEventListener('change', actualizarEquipos);
+  } else {
+    // Si es edición, los equipos están fijos
+    document.getElementById('equipoLocal').innerHTML = '<option>' + escapeHtml(partido.nombre_local || '') + '</option>';
+    document.getElementById('equipoVisit').innerHTML = '<option>' + escapeHtml(partido.nombre_visitante || '') + '</option>';
+  }
+
+  document.getElementById('formCrear').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const params = {
+      fecha: document.getElementById('fecha').value,
+      hora: document.getElementById('hora').value,
+      grupo: document.getElementById('grupo').value,
+      fase: document.getElementById('fase').value,
+      id_sede: document.getElementById('sede').value,
+      n_fecha: document.getElementById('nFecha').value.trim(),
+      n_partido: document.getElementById('nPartido').value.trim(),
+      arbitro_principal: document.getElementById('arbitro').value.trim(),
+      observaciones: document.getElementById('obs').value.trim()
+    };
+
+    let r;
+    if (partido) {
+      params.id = partido.id;
+      r = await apiCall('actualizarPartido', params);
+    } else {
+      params.categoria = document.getElementById('categoria').value;
+      params.id_equipo_local = document.getElementById('equipoLocal').value;
+      params.id_equipo_visitante = document.getElementById('equipoVisit').value;
+      if (!params.categoria || !params.id_equipo_local || !params.id_equipo_visitante) {
+        toastWarning('Completá los campos obligatorios');
+        btn.disabled = false;
+        btn.textContent = 'Programar';
+        return;
+      }
+      r = await apiCall('crearPartido', params);
+    }
+
+    if (!r.success) {
+      toastError(r.mensaje);
+      btn.disabled = false;
+      btn.textContent = partido ? 'Guardar cambios' : 'Programar';
+      return;
+    }
+
+    toastSuccess(partido ? 'Partido actualizado' : 'Partido programado');
+    closeModal();
+    cargar();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REGISTRAR RESULTADO
+// ═══════════════════════════════════════════════════════════════
+
+async function registrarResultado(idPartido) {
+  showModal('Cargando partido...', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerPartido', { id: idPartido });
+  if (!r.success) { toastError(r.mensaje); closeModal(); return; }
+
+  const p = r.data.partido;
+  const cat = categoriasGlobal.find(c => c.id === p.categoria) || {};
+
+  showModal(`Resultado: ${p.nombre_local} vs ${p.nombre_visitante}`, `
+    <div class="modal-tabs">
+      <button class="modal-tab-btn activo" data-tab="marcador" onclick="cambiarModalTab('marcador', this)">Marcador</button>
+      <button class="modal-tab-btn" data-tab="acciones" onclick="cambiarModalTab('acciones', this)">Acciones</button>
+    </div>
+
+    <div class="modal-tab-content activo" id="mtab-marcador">
+      <form id="formMarcador">
+        <input type="hidden" id="partidoId" value="${p.id}">
+
+        <div class="score-input-group">
+          <div>
+            <div class="score-equipo-nombre">${escapeHtml(p.nombre_local)}</div>
+            <input type="number" min="0" id="golLocal" class="score-input" value="${p.gol_local || 0}">
+          </div>
+          <div style="font-family:'Nunito';font-size:18px;font-weight:900;color:var(--gris);">VS</div>
+          <div>
+            <div class="score-equipo-nombre">${escapeHtml(p.nombre_visitante)}</div>
+            <input type="number" min="0" id="golVisit" class="score-input" value="${p.gol_visitante || 0}">
+          </div>
+        </div>
+
+        ${cat.pts_protocolo_max > 0 || cat.pts_actitud_max > 0 ? `
+          <h5 style="font-family:'Nunito';font-weight:800;margin:18px 0 10px;font-size:13px;">Puntos extras (festival)</h5>
+          <div class="form-row">
+            <div class="form-grupo">
+              <label class="form-label">Protocolo local (max ${cat.pts_protocolo_max})</label>
+              <input type="number" min="0" max="${cat.pts_protocolo_max}" id="ptsProtLocal" class="form-input" value="${p.pts_prot_local || 0}">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Protocolo visitante (max ${cat.pts_protocolo_max})</label>
+              <input type="number" min="0" max="${cat.pts_protocolo_max}" id="ptsProtVisit" class="form-input" value="${p.pts_prot_visit || 0}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-grupo">
+              <label class="form-label">Actitud local (max ${cat.pts_actitud_max})</label>
+              <input type="number" min="0" max="${cat.pts_actitud_max}" id="ptsActLocal" class="form-input" value="${p.pts_act_local || 0}">
+            </div>
+            <div class="form-grupo">
+              <label class="form-label">Actitud visitante (max ${cat.pts_actitud_max})</label>
+              <input type="number" min="0" max="${cat.pts_actitud_max}" id="ptsActVisit" class="form-input" value="${p.pts_act_visit || 0}">
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="form-grupo">
+          <label class="form-label">% jugado (si fue suspendido)</label>
+          <input type="number" min="0" max="100" id="pctJugado" class="form-input" value="${p.pct_jugado || 100}">
+          <div class="form-help">Si el partido se suspendió por lluvia/fuerza mayor, indicá el % del tiempo total jugado. Si jugó completo, dejá 100.</div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Foto de la planilla física (opcional)</label>
+          <div style="border:2px dashed var(--gris-cl);border-radius:12px;padding:16px;text-align:center;cursor:pointer;position:relative;">
+            <div style="font-size:24px;opacity:0.5;">📷</div>
+            <div style="font-weight:700;font-size:13px;" id="fileLabel">${p.foto_planilla_url ? 'Reemplazar foto' : 'Subir foto'}</div>
+            <input type="file" id="fotoFile" accept="image/*" style="position:absolute;opacity:0;inset:0;cursor:pointer;">
+          </div>
+        </div>
+
+        <div class="form-grupo">
+          <label class="form-label">Observaciones</label>
+          <textarea id="obs" class="form-textarea" rows="2">${escapeHtml(p.observaciones || '')}</textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+          <button type="button" class="btn btn-secundario" onclick="guardarMarcador(false)">Guardar parcial</button>
+          <button type="submit" class="btn btn-primario" id="btnFinalizar">Finalizar partido</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-tab-content" id="mtab-acciones">
+      <p style="font-size:13px;color:var(--gris-2);margin-bottom:14px;">
+        Acciones especiales para este partido:
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-amarillo" onclick="accionWO('${p.id}', '${escapeHtml(p.nombre_local)}', '${escapeHtml(p.nombre_visitante)}')">🏃 Registrar WO (no se presentó equipo)</button>
+        <button class="btn btn-secundario" onclick="accionSuspender('${p.id}')">🌧️ Suspender por fuerza mayor</button>
+        <button class="btn btn-secundario" onclick="accionAplazar('${p.id}')">📅 Aplazar partido</button>
+      </div>
+    </div>
+  `);
+
+  document.getElementById('fotoFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) document.getElementById('fileLabel').textContent = f.name;
+  });
+
+  document.getElementById('formMarcador').addEventListener('submit', e => {
+    e.preventDefault();
+    guardarMarcador(true);
+  });
+}
+
+function cambiarModalTab(tab, btn) {
+  document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.modal-tab-content').forEach(p => p.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('mtab-' + tab).classList.add('activo');
+}
+
+async function guardarMarcador(finalizar) {
+  const idPartido = document.getElementById('partidoId').value;
+  const params = {
+    id_partido: idPartido,
+    gol_local: document.getElementById('golLocal').value,
+    gol_visitante: document.getElementById('golVisit').value,
+    pct_jugado: document.getElementById('pctJugado').value,
+    observaciones: document.getElementById('obs').value.trim(),
+    finalizar: finalizar
+  };
+
+  // Puntos extras si existen los campos
+  ['ptsProtLocal','ptsProtVisit','ptsActLocal','ptsActVisit'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const key = id === 'ptsProtLocal' ? 'pts_prot_local'
+                : id === 'ptsProtVisit' ? 'pts_prot_visit'
+                : id === 'ptsActLocal' ? 'pts_act_local'
+                : 'pts_act_visit';
+      params[key] = el.value;
+    }
+  });
+
+  // Foto si vino
+  const fotoInput = document.getElementById('fotoFile');
+  if (fotoInput && fotoInput.files.length > 0) {
+    const fotoData = await leerArchivoBase64(fotoInput);
+    if (fotoData) {
+      params.foto_planilla_base64 = fotoData.base64;
+      params.foto_planilla_extension = fotoData.extension;
+    }
+  }
+
+  const r = await apiCall('registrarResultado', params);
+  if (!r.success) { toastError(r.mensaje); return; }
+
+  if (r.data && r.data.alertas && r.data.alertas.length > 0) {
+    toastWarning(`Guardado con ${r.data.alertas.length} alerta(s)`);
+  } else {
+    toastSuccess('Resultado guardado');
+  }
+  closeModal();
+  cargar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACCIONES ESPECIALES (WO, suspender, aplazar)
+// ═══════════════════════════════════════════════════════════════
+
+async function accionEspecial(idPartido) {
+  const p = partidosGlobal.find(x => x.id === idPartido);
+  if (!p) return;
+
+  showModal('Acciones del partido', `
+    <p style="font-size:14px;margin-bottom:18px;">
+      <strong>${escapeHtml(p.nombre_local)}</strong> vs <strong>${escapeHtml(p.nombre_visitante)}</strong>
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-amarillo" onclick="closeModal();accionWO('${p.id}', '${escapeHtml(p.nombre_local).replace(/'/g,"\\'")}', '${escapeHtml(p.nombre_visitante).replace(/'/g,"\\'")}')">🏃 Registrar WO</button>
+      <button class="btn btn-secundario" onclick="closeModal();accionSuspender('${p.id}')">🌧️ Suspender</button>
+      <button class="btn btn-secundario" onclick="closeModal();accionAplazar('${p.id}')">📅 Aplazar</button>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+    </div>
+  `);
+}
+
+function accionWO(idPartido, nombreLocal, nombreVisit) {
+  showModal('Registrar WO', `
+    <p style="font-size:14px;margin-bottom:18px;">¿Qué equipo NO se presentó?</p>
+    <form id="formWO">
+      <input type="hidden" id="woPartido" value="${idPartido}">
+      <div class="form-grupo">
+        <label class="form-label">Equipo ausente</label>
+        <select id="woAusente" class="form-select" required>
+          <option value="LOCAL">${escapeHtml(nombreLocal)} (local)</option>
+          <option value="VISITANTE">${escapeHtml(nombreVisit)} (visitante)</option>
+          <option value="AMBOS">Ambos equipos</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Motivo</label>
+        <input type="text" id="woMotivo" class="form-input" placeholder="Ej: No se presentó a la hora reglamentaria">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Confirmar WO</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('formWO').addEventListener('submit', async e => {
+    e.preventDefault();
+    const r = await apiCall('registrarWO', {
+      id_partido: document.getElementById('woPartido').value,
+      equipo_ausente: document.getElementById('woAusente').value,
+      motivo: document.getElementById('woMotivo').value.trim()
+    });
+    if (!r.success) { toastError(r.mensaje); return; }
+    toastSuccess(r.mensaje);
+    closeModal();
+    cargar();
+  });
+}
+
+function accionSuspender(idPartido) {
+  showModal('Suspender partido', `
+    <form id="formSusp">
+      <input type="hidden" id="suspPartido" value="${idPartido}">
+      <div class="form-grupo">
+        <label class="form-label">% jugado al momento de la suspensión</label>
+        <input type="number" min="0" max="100" id="suspPct" class="form-input" value="50" required>
+        <div class="form-help">Según Art. 29, si se jugó ≥70% se considera terminado. Si menos, queda suspendido.</div>
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Motivo</label>
+        <input type="text" id="suspMotivo" class="form-input" placeholder="Ej: Lluvia, falta de árbitros..." required>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Confirmar suspensión</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('formSusp').addEventListener('submit', async e => {
+    e.preventDefault();
+    const r = await apiCall('suspenderPartido', {
+      id_partido: document.getElementById('suspPartido').value,
+      pct_jugado: document.getElementById('suspPct').value,
+      motivo: document.getElementById('suspMotivo').value.trim()
+    });
+    if (!r.success) { toastError(r.mensaje); return; }
+    toastSuccess(r.mensaje);
+    closeModal();
+    cargar();
+  });
+}
+
+function accionAplazar(idPartido) {
+  showModal('Aplazar partido', `
+    <form id="formApl">
+      <input type="hidden" id="aplPartido" value="${idPartido}">
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nueva fecha <span class="req">*</span></label>
+          <input type="date" id="aplFecha" class="form-input" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Nueva hora</label>
+          <input type="time" id="aplHora" class="form-input">
+        </div>
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Motivo</label>
+        <input type="text" id="aplMotivo" class="form-input" placeholder="Ej: Solicitud del equipo, problemas de logística...">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario">Aplazar</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('formApl').addEventListener('submit', async e => {
+    e.preventDefault();
+    const r = await apiCall('aplazarPartido', {
+      id_partido: document.getElementById('aplPartido').value,
+      nueva_fecha: document.getElementById('aplFecha').value,
+      nueva_hora: document.getElementById('aplHora').value,
+      motivo: document.getElementById('aplMotivo').value.trim()
+    });
+    if (!r.success) { toastError(r.mensaje); return; }
+    toastSuccess(r.mensaje);
+    closeModal();
+    cargar();
+  });
+}
+
+cargar();
+</script>
+
+</body>
+</html>

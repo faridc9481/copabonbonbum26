@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .tabs-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--gris-cl);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--texto); }
+  .tab-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .tab-panel { display: none; }
+  .tab-panel.activo { display: block; }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 700px) { .config-grid { grid-template-columns: 1fr; } }
+  .config-item {
+    background: var(--gris-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .config-item-label {
+    font-size: 11px;
+    color: var(--gris);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .config-item-value {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .tier-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'Nunito', sans-serif;
+  }
+  .tier-OFICIAL { background: var(--rojo); color: var(--blanco); }
+  .tier-DIAMANTE { background: rgba(45,169,79,0.15); color: var(--verde-osc); }
+  .tier-ORO { background: rgba(255,204,0,0.25); color: #B58B00; }
+  .tier-PLATA { background: rgba(0,0,0,0.06); color: var(--texto-2); }
+  .tier-BRONCE { background: rgba(120,80,40,0.15); color: #7A5230; }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Sistema</h1>
+      <p class="page-subtitle">Configuración del torneo, patrocinadores y sedes</p>
+    </div>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-btn activo" data-tab="config" onclick="cambiarTab('config', this)">⚙️ Configuración</button>
+    <button class="tab-btn" data-tab="patrocinadores" onclick="cambiarTab('patrocinadores', this)">🎁 Patrocinadores</button>
+    <button class="tab-btn" data-tab="sedes" onclick="cambiarTab('sedes', this)">📍 Sedes</button>
+  </div>
+
+  <div class="tab-panel activo" id="tab-config">
+    <div class="card">
+      <div class="card-titulo">Configuración del torneo</div>
+      <div id="configContent"><div class="loading">Cargando...</div></div>
+      <div style="margin-top:18px;font-size:13px;color:var(--gris);padding-top:14px;border-top:1px solid var(--gris-cl);">
+        💡 Para modificar estos valores, edita la hoja <strong>01_CONFIG</strong> en Google Sheets.
+        Los cambios se aplican automáticamente en máximo 5 minutos.
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-titulo">Categorías</div>
+      <div id="catsContent"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-patrocinadores">
+    <div class="card">
+      <div class="card-titulo">
+        Patrocinadores
+        <span style="font-size:12px;color:var(--gris);font-weight:500;font-family:'Mulish';">
+          Editar en hoja <strong>04_PATROCINADORES</strong>
+        </span>
+      </div>
+      <div id="patrocContent"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-sedes">
+    <div class="card">
+      <div class="card-titulo">
+        Sedes / canchas
+        <span style="font-size:12px;color:var(--gris);font-weight:500;font-family:'Mulish';">
+          Editar en hoja <strong>03_SEDES</strong>
+        </span>
+      </div>
+      <div id="sedesContent"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+function cambiarTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('tab-' + tab).classList.add('activo');
+}
+
+async function cargarConfig() {
+  const r = await apiCall('obtenerConfig');
+  const cont = document.getElementById('configContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>'; return; }
+
+  const cfg = r.data;
+  cont.innerHTML = `
+    <div class="config-grid">
+      <div class="config-item"><div class="config-item-label">Nombre</div><div class="config-item-value">${escapeHtml(cfg.nombre || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Edición</div><div class="config-item-value">${escapeHtml(cfg.edicion || '—')} · ${escapeHtml(cfg.año || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Fecha inicio</div><div class="config-item-value">${escapeHtml(cfg.fecha_inicio || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Fecha fin</div><div class="config-item-value">${escapeHtml(cfg.fecha_fin || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Sede principal</div><div class="config-item-value">${escapeHtml(cfg.sede_principal || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Cierre inscripciones</div><div class="config-item-value">${escapeHtml(cfg.fecha_cierre_inscripciones || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Clasifican por grupo</div><div class="config-item-value">${cfg.clasifican_por_grupo || '—'} equipos</div></div>
+      <div class="config-item"><div class="config-item-label">% para terminado</div><div class="config-item-value">${cfg.pct_partido_para_dar_terminado || '—'}%</div></div>
+      <div class="config-item"><div class="config-item-label">Horas demanda</div><div class="config-item-value">${cfg.horas_demanda_max || '—'}h</div></div>
+      <div class="config-item"><div class="config-item-label">Minutos espera WO</div><div class="config-item-value">${cfg.minutos_espera_wo || '—'}min</div></div>
+    </div>
+  `;
+}
+
+async function cargarCategorias() {
+  const r = await apiCall('listarCategorias');
+  const cont = document.getElementById('catsContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
+
+  let html = `<div class="tabla-wrap"><table class="tabla">
+    <thead><tr>
+      <th>ID</th><th>Nombre</th><th>Modalidad</th><th>Años</th><th>Género</th>
+      <th>Tiempos</th><th>Min/T</th><th>Tarjetas</th><th>Campeón</th>
+    </tr></thead><tbody>`;
+  r.data.forEach(c => {
+    html += `<tr>
+      <td><strong>${c.id}</strong></td>
+      <td>${escapeHtml(c.nombre)}</td>
+      <td><span class="badge ${c.modalidad === 'TORNEO' ? 'badge-danger' : 'badge-info'}">${c.modalidad}</span></td>
+      <td>${c.año_min}-${c.año_max}</td>
+      <td>${c.genero === 'F' ? 'Femenino' : 'Masculino'}</td>
+      <td>${c.tiempos}</td>
+      <td>${c.min_por_tiempo}'</td>
+      <td>${c.usa_tarjetas ? '✓' : '—'}</td>
+      <td>${c.tiene_campeon ? '✓' : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+async function cargarPatrocinadores() {
+  const r = await apiCall('getPatrocinadores');
+  const cont = document.getElementById('patrocContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>'; return; }
+
+  if (!r.data || r.data.length === 0) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">🎁</div>No hay patrocinadores</div>';
+    return;
+  }
+
+  let html = `<div class="tabla-wrap"><table class="tabla">
+    <thead><tr><th>#</th><th>Nombre</th><th>Tier</th><th>Logo</th><th>Web</th></tr></thead><tbody>`;
+  r.data.forEach(p => {
+    html += `<tr>
+      <td>${p.orden}</td>
+      <td><strong>${escapeHtml(p.nombre)}</strong></td>
+      <td><span class="tier-badge tier-${p.tier}">${p.tier}</span></td>
+      <td>${p.logo_url ? `<a href="${escapeHtml(p.logo_url)}" target="_blank" style="color:var(--rojo);font-size:12px;">Ver logo</a>` : '—'}</td>
+      <td>${p.sitio_web ? `<a href="${escapeHtml(p.sitio_web)}" target="_blank" style="color:var(--rojo);font-size:12px;">Visitar</a>` : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+async function cargarSedes() {
+  const r = await apiCall('getSedes');
+  const cont = document.getElementById('sedesContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>'; return; }
+
+  if (!r.data || r.data.length === 0) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📍</div>No hay sedes activas</div>';
+    return;
+  }
+
+  let html = `<div class="tabla-wrap"><table class="tabla">
+    <thead><tr><th>ID</th><th>Nombre</th><th>Dirección</th><th>Capacidad</th></tr></thead><tbody>`;
+  r.data.forEach(s => {
+    html += `<tr>
+      <td><strong>${s.id}</strong></td>
+      <td>${escapeHtml(s.nombre)}</td>
+      <td>${escapeHtml(s.direccion || '—')}</td>
+      <td>${s.capacidad ? s.capacidad + ' personas' : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+cargarConfig();
+cargarCategorias();
+cargarPatrocinadores();
+cargarSedes();
+</script>
+
+</body>
+</html>
