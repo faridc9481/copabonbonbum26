@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel entrenador · Copa Bon Bon Bum 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { background: var(--gris-bg); padding-bottom: 40px; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--blanco);
+    border-bottom: 3px solid var(--rojo);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 38px; height: 38px;
+    background: var(--rojo);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--amarillo);
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+  }
+  .brand-text {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .brand-text small {
+    display: block;
+    font-size: 10px;
+    color: var(--rojo);
+    letter-spacing: 2px;
+    font-weight: 700;
+    font-family: 'Mulish', sans-serif;
+    margin-top: 2px;
+  }
+  .user-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-name {
+    text-align: right;
+    line-height: 1.2;
+  }
+  .user-name strong {
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    display: block;
+  }
+  .user-name small {
+    font-size: 11px;
+    color: var(--gris);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .btn-logout {
+    background: transparent;
+    color: var(--gris);
+    border: 1px solid var(--gris-cl);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-logout:hover { color: var(--rojo); border-color: var(--rojo); }
+
+  /* HERO EQUIPO */
+  .hero-equipo {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
+    color: var(--blanco);
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-equipo::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 240px;
+    height: 240px;
+    background: var(--amarillo);
+    border-radius: 50%;
+    opacity: 0.15;
+  }
+  .hero-equipo-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .hero-escudo {
+    width: 90px;
+    height: 90px;
+    background: var(--blanco);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  .hero-escudo img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-escudo-letras {
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--rojo);
+  }
+  .hero-info { flex: 1; min-width: 0; }
+  .hero-categoria {
+    display: inline-block;
+    background: var(--amarillo);
+    color: var(--texto);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .hero-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .hero-meta {
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* CONTAINER */
+  .container {
+    max-width: 1100px;
+    margin: 24px auto;
+    padding: 0 24px;
+  }
+
+  /* TABS */
+  .tabs-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--gris-cl);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--texto); }
+  .tab-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .tab-panel { display: none; }
+  .tab-panel.activo { display: block; }
+
+  /* STATS */
+  .stats-fila {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-mini {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-mini-num {
+    font-family: 'Nunito', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--rojo);
+  }
+  .stat-mini-label {
+    font-size: 11px;
+    color: var(--gris);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* JUGADOR ROW */
+  .jugador-row {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    transition: all 0.15s;
+  }
+  .jugador-row:hover { border-color: var(--rojo); box-shadow: var(--shadow); }
+  .jugador-foto {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gris-bg);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    color: var(--gris);
+    font-weight: 900;
+  }
+  .jugador-foto img { width: 100%; height: 100%; object-fit: cover; }
+  .jugador-num {
+    width: 32px;
+    height: 32px;
+    background: var(--texto);
+    color: var(--amarillo);
+    border-radius: 8px;
+    text-align: center;
+    line-height: 32px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .jugador-info { min-width: 0; }
+  .jugador-nombre {
+    font-weight: 700;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .jugador-meta {
+    font-size: 11px;
+    color: var(--gris);
+    margin-top: 1px;
+  }
+
+  /* CT ROW */
+  .ct-row {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* PARTIDO */
+  .partido-mini {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  .partido-mini.vivo { border-left: 5px solid var(--rojo); }
+
+  /* PREVIEW FOTO */
+  .preview-foto {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 12px;
+    border: 2px solid var(--gris-cl);
+    background: var(--gris-bg);
+  }
+  .preview-foto img { width: 100%; height: 100%; object-fit: cover; }
+
+  .file-input-wrap {
+    border: 2px dashed var(--gris-cl);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .file-input-wrap:hover { border-color: var(--rojo); background: rgba(227,6,19,0.02); }
+  .file-input-wrap input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+
+  /* ALERTA VALIDACIÓN */
+  .alerta-row {
+    background: var(--blanco);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-left: 4px solid;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .alerta-CRITICA { border-left-color: var(--rojo); }
+  .alerta-ADVERTENCIA { border-left-color: var(--amarillo-osc); }
+  .alerta-INFO { border-left-color: #0070D2; }
+  .alerta-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .alerta-CRITICA .alerta-icon { background: rgba(227,6,19,0.1); }
+  .alerta-ADVERTENCIA .alerta-icon { background: rgba(255,204,0,0.2); }
+  .alerta-INFO .alerta-icon { background: rgba(0,112,210,0.1); }
+  .alerta-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .alerta-desc {
+    font-size: 13px;
+    color: var(--texto-2);
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-mark">B</div>
+      <div class="brand-text">
+        Copa Bon Bon Bum
+        <small>PANEL ENTRENADOR · 2026</small>
+      </div>
+    </div>
+    <div class="user-box">
+      <div class="user-name">
+        <strong id="userNombre">...</strong>
+        <small>Entrenador</small>
+      </div>
+      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero-equipo" id="heroEquipo">
+    <div class="hero-equipo-inner">
+      <div class="hero-escudo" id="heroEscudo">
+        <span class="hero-escudo-letras">?</span>
+      </div>
+      <div class="hero-info">
+        <span class="hero-categoria" id="heroCategoria">Cargando...</span>
+        <div class="hero-nombre" id="heroNombre">Cargando equipo...</div>
+        <div class="hero-meta" id="heroMeta"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+
+    <!-- STATS -->
+    <div class="stats-fila" id="statsFila"></div>
+
+    <!-- TABS -->
+    <div class="tabs-nav">
+      <button class="tab-btn activo" data-tab="jugadores" onclick="cambiarTab('jugadores', this)">👥 Jugadores</button>
+      <button class="tab-btn" data-tab="ct" onclick="cambiarTab('ct', this)">👔 Cuerpo técnico</button>
+      <button class="tab-btn" data-tab="partidos" onclick="cambiarTab('partidos', this)">📅 Mis partidos</button>
+      <button class="tab-btn" data-tab="alertas" onclick="cambiarTab('alertas', this)">⚠️ Validaciones</button>
+    </div>
+
+    <!-- TAB JUGADORES -->
+    <div class="tab-panel activo" id="tab-jugadores">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <h2 style="font-family:'Nunito';font-weight:900;font-size:20px;">Mi plantilla</h2>
+        <button class="btn btn-primario" onclick="abrirCrearJugador()">+ Nuevo jugador</button>
+      </div>
+      <div id="jugadoresLista">
+        <div class="loading">Cargando jugadores...</div>
+      </div>
+    </div>
+
+    <!-- TAB CUERPO TÉCNICO -->
+    <div class="tab-panel" id="tab-ct">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <h2 style="font-family:'Nunito';font-weight:900;font-size:20px;">Cuerpo técnico</h2>
+        <button class="btn btn-primario" onclick="abrirCrearCT()">+ Agregar miembro</button>
+      </div>
+      <div id="ctLista">
+        <div class="loading">Cargando cuerpo técnico...</div>
+      </div>
+    </div>
+
+    <!-- TAB PARTIDOS -->
+    <div class="tab-panel" id="tab-partidos">
+      <h2 style="font-family:'Nunito';font-weight:900;font-size:20px;margin-bottom:14px;">Mis próximos partidos</h2>
+      <div id="partidosLista">
+        <div class="loading">Cargando partidos...</div>
+      </div>
+    </div>
+
+    <!-- TAB ALERTAS -->
+    <div class="tab-panel" id="tab-alertas">
+      <h2 style="font-family:'Nunito';font-weight:900;font-size:20px;margin-bottom:14px;">Validaciones de mi equipo</h2>
+      <div id="alertasLista">
+        <div class="loading">Cargando alertas...</div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+// Solo entrenadores
+if (!requireAuth([ROLES.ENTRENADOR])) { /* redirige */ }
+
+let miEquipo = null;
+let miEquipoCompleto = null;
+let jugadoresGlobal = [];
+let ctGlobal = [];
+
+document.getElementById('userNombre').textContent = getNombre() || getUsuario();
+
+async function init() {
+  const idEquipo = getIdEquipo();
+  if (!idEquipo) {
+    document.querySelector('.container').innerHTML = `
+      <div class="card" style="margin-top:20px;">
+        <div class="empty">
+          <div class="empty-icon">⚠️</div>
+          <p style="font-weight:700;">Tu usuario no tiene un equipo asignado</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Contactá al administrador del torneo para que asigne tu equipo.</p>
+        </div>
+      </div>
+    `;
+    document.getElementById('heroEquipo').style.display = 'none';
+    return;
+  }
+
+  // Cargar mi equipo
+  const r = await apiCall('obtenerEquipo', { id: idEquipo });
+  if (!r.success) {
+    toastError(r.mensaje);
+    return;
+  }
+
+  miEquipoCompleto = r.data;
+  miEquipo = r.data.equipo;
+  jugadoresGlobal = r.data.jugadores || [];
+  ctGlobal = r.data.cuerpo_tecnico || [];
+
+  renderHero();
+  renderStats();
+  renderJugadores();
+  renderCT();
+  cargarPartidos();
+  renderAlertas();
+}
+
+function renderHero() {
+  const c = miEquipoCompleto.categoria || {};
+  document.getElementById('heroCategoria').textContent = (c.nombre || miEquipo.categoria) + (miEquipo.grupo ? ' · GRUPO ' + miEquipo.grupo : '');
+  document.getElementById('heroNombre').textContent = miEquipo.nombre_display || miEquipo.nombre_club || 'Mi equipo';
+  document.getElementById('heroMeta').textContent = (miEquipo.ciudad || '') + ' · ' + (miEquipo.estado || '');
+
+  const escudoBox = document.getElementById('heroEscudo');
+  if (miEquipo.escudo_url) {
+    escudoBox.innerHTML = `<img src="${miEquipo.escudo_url}" alt="" onerror="this.parentNode.innerHTML='<span class=\\'hero-escudo-letras\\'>${siglas(miEquipo.nombre_club || '')}</span>'">`;
+  } else {
+    escudoBox.innerHTML = `<span class="hero-escudo-letras">${siglas(miEquipo.nombre_club || '')}</span>`;
+  }
+}
+
+function renderStats() {
+  const c = miEquipoCompleto.contadores || {};
+  const cat = miEquipoCompleto.categoria || {};
+  document.getElementById('statsFila').innerHTML = `
+    <div class="stat-mini">
+      <div class="stat-mini-num">${c.jugadores_total || 0}</div>
+      <div class="stat-mini-label">Jugadores</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num" style="color:var(--verde);">${c.jugadores_aprobados || 0}</div>
+      <div class="stat-mini-label">Aprobados</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num">${c.arqueros || 0}</div>
+      <div class="stat-mini-label">Arqueros</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num">${c.niñas || 0}</div>
+      <div class="stat-mini-label">Niñas</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num" style="font-size:18px;">${cat.min_jugadores || '?'}-${cat.max_jugadores || '?'}</div>
+      <div class="stat-mini-label">Mín-Máx</div>
+    </div>
+  `;
+}
+
+function cambiarTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('tab-' + tab).classList.add('activo');
+}
+
+async function cerrarSesion() {
+  const ok = await confirmar('¿Cerrar sesión?', { txtSi: 'Sí, salir', peligroso: false });
+  if (ok) logout();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JUGADORES
+// ═══════════════════════════════════════════════════════════════
+
+function renderJugadores() {
+  const cont = document.getElementById('jugadoresLista');
+
+  if (jugadoresGlobal.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">👥</div>
+          <p style="font-weight:700;">Aún no hay jugadores en tu plantilla</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Comenzá agregando tu primer jugador.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Ordenar por número de camiseta
+  const sorted = [...jugadoresGlobal].sort((a, b) => (Number(a.numero_camiseta) || 99) - (Number(b.numero_camiseta) || 99));
+
+  let html = '';
+  sorted.forEach(j => {
+    const foto = j.foto_url
+      ? `<img src="${escapeHtml(j.foto_url)}" onerror="this.outerHTML='${siglas(j.nombres + ' ' + j.apellidos)}'">`
+      : siglas(j.nombres + ' ' + j.apellidos);
+    html += `
+      <div class="jugador-row">
+        <div class="jugador-foto">${foto}</div>
+        <div class="jugador-num">${j.numero_camiseta || '—'}</div>
+        <div class="jugador-info">
+          <div class="jugador-nombre">${escapeHtml(j.nombres)} ${escapeHtml(j.apellidos)}</div>
+          <div class="jugador-meta">
+            ${j.genero === 'F' ? '👧 ' : '👦 '}${String(j.fecha_nacimiento || '').substring(0,4)} · ${escapeHtml(j.posicion || 'sin posición')}${toBool(j.es_arquero) ? ' · 🥅 Arquero' : ''}
+          </div>
+        </div>
+        ${badgeEstado(j.estado)}
+        <button class="btn btn-secundario btn-sm" onclick="editarJugador('${j.id}')">Editar</button>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+function toBool(v) {
+  if (v === true || v === 'SI' || v === 'Sí' || v === 'true' || v === 1) return true;
+  return false;
+}
+
+function abrirCrearJugador() {
+  showModal('Nuevo jugador', renderFormJugador(null));
+  conectarFormJugador(null);
+}
+
+async function editarJugador(idJugador) {
+  showModal('Editar jugador', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerJugador', { id: idJugador });
+  if (!r.success) { toastError(r.mensaje); closeModal(); return; }
+  showModal('Editar: ' + r.data.jugador.nombres + ' ' + r.data.jugador.apellidos, renderFormJugador(r.data.jugador));
+  conectarFormJugador(r.data.jugador);
+}
+
+function renderFormJugador(jug) {
+  return `
+    <form id="formJug">
+      <div class="form-grupo">
+        <label class="form-label">Foto del jugador</label>
+        ${jug && jug.foto_url ? `<div class="preview-foto"><img src="${escapeHtml(jug.foto_url)}"></div>` : ''}
+        <div class="file-input-wrap">
+          <div style="font-size:24px;opacity:0.5;">📷</div>
+          <div style="font-weight:700;font-size:13px;" id="fileLabel">${jug && jug.foto_url ? 'Reemplazar foto' : 'Subir foto'}</div>
+          <div style="font-size:11px;color:var(--gris);">PNG, JPG. Máx 2MB.</div>
+          <input type="file" id="fotoFile" accept="image/png,image/jpeg,image/jpg">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nombres <span class="req">*</span></label>
+          <input type="text" id="nombres" class="form-input" value="${jug ? escapeHtml(jug.nombres || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Apellidos <span class="req">*</span></label>
+          <input type="text" id="apellidos" class="form-input" value="${jug ? escapeHtml(jug.apellidos || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Género <span class="req">*</span></label>
+          <select id="genero" class="form-select" required>
+            <option value="M" ${jug && jug.genero === 'M' ? 'selected' : ''}>Masculino</option>
+            <option value="F" ${jug && jug.genero === 'F' ? 'selected' : ''}>Femenino</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Fecha nacimiento <span class="req">*</span></label>
+          <input type="date" id="fecha_nacimiento" class="form-input" value="${jug ? jug.fecha_nacimiento || '' : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Tipo doc</label>
+          <select id="tipo_doc" class="form-select">
+            <option value="RC" ${jug && jug.tipo_doc === 'RC' ? 'selected' : ''}>RC</option>
+            <option value="TI" ${jug && jug.tipo_doc === 'TI' ? 'selected' : ''}>TI</option>
+            <option value="CC" ${jug && jug.tipo_doc === 'CC' ? 'selected' : ''}>CC</option>
+            <option value="CE" ${jug && jug.tipo_doc === 'CE' ? 'selected' : ''}>CE</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Documento <span class="req">*</span></label>
+          <input type="text" id="documento" class="form-input" value="${jug ? escapeHtml(jug.documento || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Número camiseta</label>
+          <input type="number" id="numero_camiseta" class="form-input" min="1" max="99" value="${jug ? jug.numero_camiseta || '' : ''}">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Posición</label>
+          <select id="posicion" class="form-select">
+            <option value="">—</option>
+            <option value="ARQ" ${jug && jug.posicion === 'ARQ' ? 'selected' : ''}>Arquero</option>
+            <option value="DEF" ${jug && jug.posicion === 'DEF' ? 'selected' : ''}>Defensa</option>
+            <option value="MED" ${jug && jug.posicion === 'MED' ? 'selected' : ''}>Mediocampo</option>
+            <option value="DEL" ${jug && jug.posicion === 'DEL' ? 'selected' : ''}>Delantero</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;">
+          <input type="checkbox" id="es_arquero" ${jug && toBool(jug.es_arquero) ? 'checked' : ''}>
+          Es arquero (importante para validaciones)
+        </label>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">EPS</label>
+        <input type="text" id="eps" class="form-input" value="${jug ? escapeHtml(jug.eps || '') : ''}">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardar">${jug ? 'Guardar' : 'Crear'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarFormJugador(jug) {
+  document.getElementById('fotoFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) document.getElementById('fileLabel').textContent = f.name;
+  });
+
+  document.getElementById('formJug').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const fotoInput = document.getElementById('fotoFile');
+      let fotoData = null;
+      if (fotoInput.files.length > 0) {
+        fotoData = await leerArchivoBase64(fotoInput);
+      }
+
+      const params = {
+        nombres: document.getElementById('nombres').value.trim(),
+        apellidos: document.getElementById('apellidos').value.trim(),
+        genero: document.getElementById('genero').value,
+        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+        tipo_doc: document.getElementById('tipo_doc').value,
+        documento: document.getElementById('documento').value.trim(),
+        numero_camiseta: document.getElementById('numero_camiseta').value || '',
+        posicion: document.getElementById('posicion').value,
+        es_arquero: document.getElementById('es_arquero').checked,
+        eps: document.getElementById('eps').value.trim()
+      };
+
+      if (fotoData) {
+        params.foto_base64 = fotoData.base64;
+        params.foto_extension = fotoData.extension;
+      }
+
+      let r;
+      if (jug) {
+        params.id = jug.id;
+        r = await apiCall('actualizarJugador', params);
+      } else {
+        params.id_equipo = miEquipo.id;
+        r = await apiCall('crearJugador', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = jug ? 'Guardar' : 'Crear';
+        return;
+      }
+
+      if (r.data && r.data.alertas && r.data.alertas.length > 0) {
+        toastWarning(`Guardado con ${r.data.alertas.length} alerta(s). Revisá la pestaña Validaciones.`);
+      } else {
+        toastSuccess('Jugador guardado');
+      }
+      closeModal();
+      init(); // Recargar todo
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = jug ? 'Guardar' : 'Crear';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUERPO TÉCNICO
+// ═══════════════════════════════════════════════════════════════
+
+function renderCT() {
+  const cont = document.getElementById('ctLista');
+
+  if (ctGlobal.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">👔</div>
+          <p style="font-weight:700;">Sin cuerpo técnico registrado</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Agregá al técnico, asistente y delegado según el reglamento.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  ctGlobal.forEach(ct => {
+    const certEstado = String(ct.certificado_validado || 'PENDIENTE').toUpperCase();
+    const colorRol = ct.rol === 'TECNICO' ? 'badge-danger' : ct.rol === 'ASISTENTE' ? 'badge-info' : 'badge-success';
+    html += `
+      <div class="ct-row">
+        <div>
+          <strong>${escapeHtml(ct.nombres + ' ' + ct.apellidos)}</strong>
+          <div style="font-size:12px;color:var(--gris);margin-top:2px;">
+            ${escapeHtml(ct.documento || '')} · ${escapeHtml(ct.telefono || '')}
+          </div>
+        </div>
+        <span class="badge ${colorRol}">${ct.rol}</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:11px;font-weight:700;color:${certEstado === 'SI' ? 'var(--verde)' : certEstado === 'NO' ? 'var(--rojo)' : 'var(--gris)'};">
+            ${certEstado === 'SI' ? '✓ Cert OK' : certEstado === 'NO' ? '✗ Rechazado' : '⏳ Pendiente'}
+          </span>
+          <button class="btn btn-secundario btn-sm" onclick="editarCT('${ct.id}')">Editar</button>
+        </div>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+function abrirCrearCT() {
+  showModal('Agregar miembro CT', renderFormCT(null));
+  conectarFormCT(null);
+}
+
+function editarCT(idCT) {
+  const ct = ctGlobal.find(x => x.id === idCT);
+  if (!ct) return;
+  showModal('Editar: ' + ct.nombres + ' ' + ct.apellidos, renderFormCT(ct));
+  conectarFormCT(ct);
+}
+
+function renderFormCT(ct) {
+  return `
+    <form id="formCT">
+      <div class="form-grupo">
+        <label class="form-label">Rol <span class="req">*</span></label>
+        <select id="rol" class="form-select" required ${ct ? 'disabled' : ''}>
+          <option value="TECNICO" ${ct && ct.rol === 'TECNICO' ? 'selected' : ''}>Técnico (DT)</option>
+          <option value="ASISTENTE" ${ct && ct.rol === 'ASISTENTE' ? 'selected' : ''}>Asistente</option>
+          <option value="DELEGADO" ${ct && ct.rol === 'DELEGADO' ? 'selected' : ''}>Delegado</option>
+        </select>
+        <div class="form-help">Reglamento Art. 11: técnico y asistente requieren certificado Ley 2210</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nombres <span class="req">*</span></label>
+          <input type="text" id="nombres" class="form-input" value="${ct ? escapeHtml(ct.nombres || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Apellidos <span class="req">*</span></label>
+          <input type="text" id="apellidos" class="form-input" value="${ct ? escapeHtml(ct.apellidos || '') : ''}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Documento <span class="req">*</span></label>
+          <input type="text" id="documento" class="form-input" value="${ct ? escapeHtml(ct.documento || '') : ''}" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" id="telefono" class="form-input" value="${ct ? escapeHtml(ct.telefono || '') : ''}">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-input" value="${ct ? escapeHtml(ct.email || '') : ''}">
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Certificado Ley 2210 (PDF o imagen)</label>
+        ${ct && ct.certificado_url ? `<p style="font-size:12px;margin-bottom:6px;"><a href="${escapeHtml(ct.certificado_url)}" target="_blank" style="color:var(--rojo);">Ver certificado actual</a></p>` : ''}
+        <div class="file-input-wrap">
+          <div style="font-size:24px;opacity:0.5;">📄</div>
+          <div style="font-weight:700;font-size:13px;" id="certLabel">${ct && ct.certificado_url ? 'Reemplazar' : 'Subir certificado'}</div>
+          <div style="font-size:11px;color:var(--gris);">PDF, JPG, PNG. Máx 5MB.</div>
+          <input type="file" id="certFile" accept="application/pdf,image/png,image/jpeg">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardarCT">${ct ? 'Guardar' : 'Agregar'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarFormCT(ct) {
+  document.getElementById('certFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) document.getElementById('certLabel').textContent = f.name;
+  });
+
+  document.getElementById('formCT').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardarCT');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const certInput = document.getElementById('certFile');
+      let certData = null;
+      if (certInput.files.length > 0) {
+        certData = await leerArchivoBase64(certInput);
+      }
+
+      const params = {
+        nombres: document.getElementById('nombres').value.trim(),
+        apellidos: document.getElementById('apellidos').value.trim(),
+        documento: document.getElementById('documento').value.trim(),
+        telefono: document.getElementById('telefono').value.trim(),
+        email: document.getElementById('email').value.trim()
+      };
+
+      if (certData) {
+        params.certificado_base64 = certData.base64;
+        params.certificado_extension = certData.extension;
+      }
+
+      let r;
+      if (ct) {
+        params.id = ct.id;
+        r = await apiCall('actualizarMiembroCT', params);
+      } else {
+        params.id_equipo = miEquipo.id;
+        params.rol = document.getElementById('rol').value;
+        r = await apiCall('crearMiembroCT', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = ct ? 'Guardar' : 'Agregar';
+        return;
+      }
+
+      toastSuccess('Guardado');
+      closeModal();
+      init();
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = ct ? 'Guardar' : 'Agregar';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PARTIDOS
+// ═══════════════════════════════════════════════════════════════
+
+async function cargarPartidos() {
+  const cont = document.getElementById('partidosLista');
+
+  // Listar todos los partidos del torneo (luego filtrar los míos)
+  const r = await apiCall('listarPartidos');
+  if (!r.success) {
+    cont.innerHTML = '<div class="empty">Error</div>';
+    return;
+  }
+
+  const mios = (r.data || []).filter(p =>
+    p.id_equipo_local === miEquipo.id || p.id_equipo_visitante === miEquipo.id
+  );
+
+  if (mios.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">📅</div>
+          <p style="font-weight:700;">Aún no hay partidos programados para tu equipo</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Ordenar: próximos primero
+  mios.sort((a, b) => (a.fecha + ' ' + a.hora).localeCompare(b.fecha + ' ' + b.hora));
+
+  let html = '';
+  mios.forEach(p => {
+    const esLocal = p.id_equipo_local === miEquipo.id;
+    const rival = esLocal ? p.nombre_visitante : p.nombre_local;
+    const escudoRival = esLocal ? p.escudo_visitante : p.escudo_local;
+    const esVivo = p.estado === 'EN_CURSO';
+    const esFinalizado = ['FINALIZADO', 'WO_LOCAL', 'WO_VISITANTE'].includes(p.estado);
+
+    let resultadoHTML = '';
+    if (esFinalizado || esVivo) {
+      const golMio = esLocal ? p.gol_local : p.gol_visitante;
+      const golRival = esLocal ? p.gol_visitante : p.gol_local;
+      resultadoHTML = `<div style="font-family:'Nunito';font-size:22px;font-weight:900;color:var(--rojo);">${golMio} – ${golRival}</div>`;
+    } else {
+      resultadoHTML = `<div style="font-weight:700;color:var(--gris);">${p.fecha} · ${p.hora}</div>`;
+    }
+
+    html += `
+      <div class="partido-mini ${esVivo ? 'vivo' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${renderEscudoMini(escudoRival, rival)}
+            <div>
+              <div style="font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700;">${esLocal ? '🏠 Local' : '✈️ Visitante'} · ${p.categoria}</div>
+              <strong>vs ${escapeHtml(rival)}</strong>
+              <div style="font-size:12px;color:var(--gris);margin-top:2px;">📍 ${escapeHtml(p.sede_nombre || '—')}</div>
+            </div>
+          </div>
+          ${resultadoHTML}
+          ${badgeEstado(p.estado)}
+        </div>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ALERTAS / VALIDACIONES
+// ═══════════════════════════════════════════════════════════════
+
+async function renderAlertas() {
+  const cont = document.getElementById('alertasLista');
+
+  // Intentar listar alertas. Si el endpoint no existe, hacemos validación local
+  const r = await apiCall('listarAlertas');
+
+  if (!r.success) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">⚠️</div>
+          <p style="font-weight:700;">No se pueden cargar alertas</p>
+          <p style="font-size:13px;color:var(--gris);">El administrador puede verlas desde su panel.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Filtrar las que sean de mi equipo o mis jugadores
+  const idsJugadores = jugadoresGlobal.map(j => j.id);
+  const misAlertas = (r.data || []).filter(a => {
+    if (String(a.estado).toUpperCase() !== 'PENDIENTE') return false;
+    if (a.tipo_entidad === 'EQUIPO' && a.id_entidad_afectada === miEquipo.id) return true;
+    if (a.tipo_entidad === 'JUGADOR' && idsJugadores.includes(a.id_entidad_afectada)) return true;
+    return false;
+  });
+
+  if (misAlertas.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">✅</div>
+          <p style="font-weight:700;">Sin validaciones pendientes</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Tu equipo cumple con todas las reglas del reglamento.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Ordenar por severidad
+  const ord = { CRITICA: 0, ADVERTENCIA: 1, INFO: 2 };
+  misAlertas.sort((a, b) => (ord[a.severidad] || 9) - (ord[b.severidad] || 9));
+
+  let html = '';
+  misAlertas.forEach(a => {
+    const icono = a.severidad === 'CRITICA' ? '🔴' : a.severidad === 'ADVERTENCIA' ? '⚠️' : 'ℹ️';
+    html += `
+      <div class="alerta-row alerta-${a.severidad}">
+        <div class="alerta-icon">${icono}</div>
+        <div>
+          <div class="alerta-titulo">${escapeHtml(a.tipo)}</div>
+          <div class="alerta-desc">${escapeHtml(a.descripcion)}</div>
+        </div>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+init();
+</script>
+
+</body>
+</html>
