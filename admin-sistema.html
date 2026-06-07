@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  body { padding: 32px; }
+  @media (max-width: 768px) { body { padding: 20px; } }
+
+  .tabs-nav {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--gris-cl);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--gris);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--texto); }
+  .tab-btn.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .tab-panel { display: none; }
+  .tab-panel.activo { display: block; }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 700px) { .config-grid { grid-template-columns: 1fr; } }
+  .config-item {
+    background: var(--gris-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .config-item-label {
+    font-size: 11px;
+    color: var(--gris);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .config-item-value {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  /* ─── PATROCINADORES ─── */
+
+  .tier-section {
+    margin-bottom: 28px;
+  }
+  .tier-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .tier-section-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .tier-section-count {
+    font-size: 11px;
+    color: var(--gris);
+    font-weight: 700;
+  }
+  .tier-section-line {
+    flex: 1;
+    height: 2px;
+    background: var(--gris-cl);
+    border-radius: 100px;
+  }
+
+  .tier-OFICIAL .tier-section-titulo { color: var(--rojo); }
+  .tier-OFICIAL .tier-section-line { background: linear-gradient(to right, var(--rojo) 0%, var(--gris-cl) 100%); }
+
+  .tier-DIAMANTE .tier-section-titulo { color: var(--verde-osc); }
+  .tier-DIAMANTE .tier-section-line { background: linear-gradient(to right, var(--verde) 0%, var(--gris-cl) 100%); }
+
+  .tier-ORO .tier-section-titulo { color: #B58B00; }
+  .tier-ORO .tier-section-line { background: linear-gradient(to right, #FFCC00 0%, var(--gris-cl) 100%); }
+
+  .tier-PLATA .tier-section-titulo { color: var(--texto-2); }
+  .tier-BRONCE .tier-section-titulo { color: #7A5230; }
+
+  .pat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .pat-card {
+    background: var(--blanco);
+    border: 1px solid var(--gris-cl);
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pat-card:hover {
+    border-color: var(--rojo);
+    box-shadow: var(--shadow);
+  }
+  .pat-card.inactivo {
+    opacity: 0.5;
+    background: var(--gris-bg);
+  }
+
+  .pat-logo-box {
+    width: 100%;
+    height: 100px;
+    background: var(--gris-bg);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .pat-logo-box img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+  }
+  .pat-logo-placeholder {
+    font-size: 32px;
+    color: var(--gris);
+    opacity: 0.4;
+  }
+
+  .pat-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .pat-meta {
+    font-size: 11px;
+    color: var(--gris);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .pat-meta a { color: var(--rojo); text-decoration: none; font-weight: 700; }
+
+  .pat-acciones {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .pat-add-card {
+    background: var(--blanco);
+    border: 2px dashed var(--gris-cl);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .pat-add-card:hover {
+    border-color: var(--rojo);
+    background: rgba(227,6,19,0.03);
+  }
+  .pat-add-icon {
+    font-size: 32px;
+    color: var(--gris);
+    margin-bottom: 6px;
+  }
+  .pat-add-text {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--gris);
+  }
+
+  .tier-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'Nunito', sans-serif;
+  }
+  .tier-badge.tier-OFICIAL { background: var(--rojo); color: var(--blanco); }
+  .tier-badge.tier-DIAMANTE { background: rgba(45,169,79,0.15); color: var(--verde-osc); }
+  .tier-badge.tier-ORO { background: rgba(255,204,0,0.25); color: #B58B00; }
+  .tier-badge.tier-PLATA { background: rgba(0,0,0,0.06); color: var(--texto-2); }
+  .tier-badge.tier-BRONCE { background: rgba(120,80,40,0.15); color: #7A5230; }
+
+  /* MODAL FORM */
+  .upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) { .upload-grid { grid-template-columns: 1fr; } }
+
+  .upload-box {
+    border: 2px dashed var(--gris-cl);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .upload-box:hover { border-color: var(--rojo); background: rgba(227,6,19,0.02); }
+  .upload-box input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .upload-box-label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    color: var(--gris);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .upload-box-size {
+    font-size: 10px;
+    color: var(--gris);
+    margin-bottom: 8px;
+  }
+  .upload-preview {
+    max-width: 100%;
+    max-height: 80px;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  .upload-banner-preview {
+    max-width: 100%;
+    max-height: 60px;
+    object-fit: contain;
+  }
+  .upload-icon {
+    font-size: 22px;
+    opacity: 0.4;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Sistema</h1>
+      <p class="page-subtitle">Configuración del torneo, patrocinadores y sedes</p>
+    </div>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-btn activo" data-tab="config" onclick="cambiarTab('config', this)">⚙️ Configuración</button>
+    <button class="tab-btn" data-tab="patrocinadores" onclick="cambiarTab('patrocinadores', this)">🎁 Patrocinadores</button>
+    <button class="tab-btn" data-tab="sedes" onclick="cambiarTab('sedes', this)">📍 Sedes</button>
+  </div>
+
+  <!-- TAB CONFIG -->
+  <div class="tab-panel activo" id="tab-config">
+    <div class="card">
+      <div class="card-titulo">Configuración del torneo</div>
+      <div id="configContent"><div class="loading">Cargando...</div></div>
+      <div style="margin-top:18px;font-size:13px;color:var(--gris);padding-top:14px;border-top:1px solid var(--gris-cl);">
+        💡 Para modificar estos valores, edita la hoja <strong>01_CONFIG</strong> en Google Sheets.
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <div class="card-titulo">Categorías</div>
+      <div id="catsContent"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+  <!-- TAB PATROCINADORES -->
+  <div class="tab-panel" id="tab-patrocinadores">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-family:'Nunito';font-weight:900;font-size:20px;">Patrocinadores</h2>
+        <p style="font-size:13px;color:var(--gris);margin-top:2px;">Logos agrupados por nivel. El orden dentro de cada nivel se controla con el campo "orden".</p>
+      </div>
+      <button class="btn btn-primario" onclick="abrirCrearPat()">+ Agregar patrocinador</button>
+    </div>
+    <div id="patrocContent">
+      <div class="loading">Cargando patrocinadores...</div>
+    </div>
+  </div>
+
+  <!-- TAB SEDES -->
+  <div class="tab-panel" id="tab-sedes">
+    <div class="card">
+      <div class="card-titulo">
+        Sedes / canchas
+        <span style="font-size:12px;color:var(--gris);font-weight:500;font-family:'Mulish';">
+          Editar en hoja <strong>03_SEDES</strong>
+        </span>
+      </div>
+      <div id="sedesContent"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+
+<script>
+if (!requireAuth([ROLES.ADMIN])) { /* redirige */ }
+
+let patrocinadoresGlobal = [];
+
+function cambiarTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('tab-' + tab).classList.add('activo');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+
+async function cargarConfig() {
+  const r = await apiCall('obtenerConfig');
+  const cont = document.getElementById('configContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>'; return; }
+  const cfg = r.data;
+  cont.innerHTML = `
+    <div class="config-grid">
+      <div class="config-item"><div class="config-item-label">Nombre</div><div class="config-item-value">${escapeHtml(cfg.nombre || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Edición</div><div class="config-item-value">${escapeHtml(cfg.edicion || '—')} · ${escapeHtml(cfg.año || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Fecha inicio</div><div class="config-item-value">${escapeHtml(cfg.fecha_inicio || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Fecha fin</div><div class="config-item-value">${escapeHtml(cfg.fecha_fin || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Sede principal</div><div class="config-item-value">${escapeHtml(cfg.sede_principal || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Cierre inscripciones</div><div class="config-item-value">${escapeHtml(cfg.fecha_cierre_inscripciones || '—')}</div></div>
+      <div class="config-item"><div class="config-item-label">Clasifican por grupo</div><div class="config-item-value">${cfg.clasifican_por_grupo || '—'} equipos</div></div>
+      <div class="config-item"><div class="config-item-label">% para terminado</div><div class="config-item-value">${cfg.pct_partido_para_dar_terminado || '—'}%</div></div>
+      <div class="config-item"><div class="config-item-label">Horas demanda</div><div class="config-item-value">${cfg.horas_demanda_max || '—'}h</div></div>
+      <div class="config-item"><div class="config-item-label">Minutos espera WO</div><div class="config-item-value">${cfg.minutos_espera_wo || '—'}min</div></div>
+    </div>
+  `;
+}
+
+async function cargarCategorias() {
+  const r = await apiCall('listarCategorias');
+  const cont = document.getElementById('catsContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
+  let html = `<div class="tabla-wrap"><table class="tabla">
+    <thead><tr>
+      <th>ID</th><th>Nombre</th><th>Modalidad</th><th>Años</th><th>Género</th>
+      <th>Tiempos</th><th>Min/T</th><th>Tarjetas</th><th>Campeón</th>
+    </tr></thead><tbody>`;
+  r.data.forEach(c => {
+    html += `<tr>
+      <td><strong>${c.id}</strong></td>
+      <td>${escapeHtml(c.nombre)}</td>
+      <td><span class="badge ${c.modalidad === 'TORNEO' ? 'badge-danger' : 'badge-info'}">${c.modalidad}</span></td>
+      <td>${c.año_min}-${c.año_max}</td>
+      <td>${c.genero === 'F' ? 'Femenino' : 'Masculino'}</td>
+      <td>${c.tiempos}</td>
+      <td>${c.min_por_tiempo}'</td>
+      <td>${c.usa_tarjetas === 'SI' || c.usa_tarjetas === true ? '✓' : '—'}</td>
+      <td>${c.tiene_campeon === 'SI' || c.tiene_campeon === true ? '✓' : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PATROCINADORES
+// ═══════════════════════════════════════════════════════════════
+
+async function cargarPatrocinadores() {
+  const cont = document.getElementById('patrocContent');
+  cont.innerHTML = '<div class="loading">Cargando patrocinadores...</div>';
+
+  const r = await apiCall('listarPatrocinadores');
+  if (!r.success) {
+    // Fallback: si el endpoint admin no existe aún, intentar con el público
+    const r2 = await apiCall('getPatrocinadores');
+    if (!r2.success) {
+      cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '<br><br>¿Subiste el backend nuevo?</div>';
+      return;
+    }
+    patrocinadoresGlobal = r2.data || [];
+  } else {
+    patrocinadoresGlobal = r.data || [];
+  }
+
+  renderPatrocinadores();
+}
+
+function renderPatrocinadores() {
+  const cont = document.getElementById('patrocContent');
+
+  if (patrocinadoresGlobal.length === 0) {
+    cont.innerHTML = `
+      <div class="card">
+        <div class="empty">
+          <div class="empty-icon">🎁</div>
+          <p style="font-weight:700;">No hay patrocinadores cargados todavía</p>
+          <p style="font-size:13px;color:var(--gris);margin-top:6px;">Empezá agregando el primero.</p>
+          <button class="btn btn-primario" style="margin-top:14px;" onclick="abrirCrearPat()">+ Agregar primer patrocinador</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Agrupar por tier
+  const tiers = ['OFICIAL', 'DIAMANTE', 'ORO', 'PLATA', 'BRONCE'];
+  const porTier = {};
+  tiers.forEach(t => porTier[t] = []);
+  patrocinadoresGlobal.forEach(p => {
+    const t = p.tier || 'BRONCE';
+    if (!porTier[t]) porTier[t] = [];
+    porTier[t].push(p);
+  });
+
+  let html = '';
+  tiers.forEach(tier => {
+    const lista = porTier[tier];
+    if (lista.length === 0) return;
+
+    html += `
+      <div class="tier-section tier-${tier}">
+        <div class="tier-section-header">
+          <span class="tier-section-titulo">${tier}</span>
+          <span class="tier-section-count">${lista.length} ${lista.length === 1 ? 'patrocinador' : 'patrocinadores'}</span>
+          <div class="tier-section-line"></div>
+        </div>
+        <div class="pat-grid">
+          ${lista.map(p => renderPatCard(p)).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  cont.innerHTML = html;
+}
+
+function renderPatCard(p) {
+  const inactivo = p.activo === 'NO' || p.activo === false;
+  return `
+    <div class="pat-card ${inactivo ? 'inactivo' : ''}">
+      <div class="pat-logo-box">
+        ${p.logo_url
+          ? `<img src="${escapeHtml(p.logo_url)}" alt="${escapeHtml(p.nombre)}" onerror="this.outerHTML='<div class=\\'pat-logo-placeholder\\'>🎁</div>'">`
+          : `<div class="pat-logo-placeholder">🎁</div>`
+        }
+      </div>
+      <div>
+        <div class="pat-nombre">${escapeHtml(p.nombre)}</div>
+        <div class="pat-meta" style="margin-top:4px;">
+          <span class="tier-badge tier-${p.tier}">${p.tier}</span>
+          <span>#${p.orden || '?'}</span>
+          ${inactivo ? '<span style="color:var(--rojo);font-weight:700;">INACTIVO</span>' : ''}
+        </div>
+        ${p.sitio_web ? `<div class="pat-meta" style="margin-top:6px;">🌐 <a href="${escapeHtml(p.sitio_web)}" target="_blank">${escapeHtml(p.sitio_web)}</a></div>` : ''}
+        ${p.telefono ? `<div class="pat-meta" style="margin-top:2px;">📞 ${escapeHtml(p.telefono)}</div>` : ''}
+      </div>
+      <div class="pat-acciones">
+        <button class="btn btn-secundario btn-sm" style="flex:1;" onclick="editarPat('${p.id}')">Editar</button>
+        <button class="btn btn-secundario btn-sm" style="color:var(--rojo);" onclick="eliminarPat('${p.id}', '${escapeHtml(p.nombre).replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    </div>
+  `;
+}
+
+function abrirCrearPat() {
+  showModal('Nuevo patrocinador', renderFormPat(null));
+  conectarFormPat(null);
+}
+
+async function editarPat(idPat) {
+  showModal('Cargando...', '<div class="loading">Cargando...</div>');
+  const r = await apiCall('obtenerPatrocinador', { id: idPat });
+  if (!r.success) { toastError(r.mensaje); closeModal(); return; }
+  showModal('Editar: ' + r.data.nombre, renderFormPat(r.data));
+  conectarFormPat(r.data);
+}
+
+function renderFormPat(p) {
+  return `
+    <form id="formPat">
+      <div class="upload-grid">
+        <!-- LOGO -->
+        <div>
+          <label class="upload-box">
+            ${p && p.logo_url
+              ? `<img src="${escapeHtml(p.logo_url)}" class="upload-preview" id="logoPreview">`
+              : `<div class="upload-icon" id="logoIcon">📷</div>`
+            }
+            <div class="upload-box-label">Logo cuadrado</div>
+            <div class="upload-box-size">200×200 PNG/JPG</div>
+            <input type="file" id="logoFile" accept="image/*">
+          </label>
+        </div>
+
+        <!-- BANNER -->
+        <div>
+          <label class="upload-box">
+            ${p && p.banner_url
+              ? `<img src="${escapeHtml(p.banner_url)}" class="upload-banner-preview" id="bannerPreview">`
+              : `<div class="upload-icon" id="bannerIcon">🖼️</div>`
+            }
+            <div class="upload-box-label">Banner horizontal (opcional)</div>
+            <div class="upload-box-size">~970×90 para footer/header</div>
+            <input type="file" id="bannerFile" accept="image/*">
+          </label>
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Nombre del patrocinador <span class="req">*</span></label>
+        <input type="text" id="nombre" class="form-input" value="${p ? escapeHtml(p.nombre || '') : ''}" required placeholder="Ej: Colombina S.A.">
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Nivel / Tier <span class="req">*</span></label>
+          <select id="tier" class="form-select" required>
+            <option value="OFICIAL" ${p && p.tier === 'OFICIAL' ? 'selected' : ''}>🏆 OFICIAL (principal)</option>
+            <option value="DIAMANTE" ${p && p.tier === 'DIAMANTE' ? 'selected' : ''}>💎 DIAMANTE</option>
+            <option value="ORO" ${p && p.tier === 'ORO' ? 'selected' : ''}>🥇 ORO</option>
+            <option value="PLATA" ${p && p.tier === 'PLATA' ? 'selected' : ''}>🥈 PLATA</option>
+            <option value="BRONCE" ${(!p || p.tier === 'BRONCE') ? 'selected' : ''}>🥉 BRONCE</option>
+          </select>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Orden de aparición</label>
+          <input type="number" id="orden" class="form-input" value="${p ? p.orden || 99 : 99}" min="1" max="99">
+          <div class="form-help">Menor número = aparece primero</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Sitio web</label>
+          <input type="url" id="sitio_web" class="form-input" value="${p ? escapeHtml(p.sitio_web || '') : ''}" placeholder="https://...">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" id="telefono" class="form-input" value="${p ? escapeHtml(p.telefono || '') : ''}">
+        </div>
+      </div>
+
+      <div class="form-grupo">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;">
+          <input type="checkbox" id="activo" ${!p || p.activo === 'SI' || p.activo === true ? 'checked' : ''}>
+          Activo (visible al público)
+        </label>
+      </div>
+
+      <div class="form-grupo">
+        <label class="form-label">Observaciones internas</label>
+        <textarea id="observaciones" class="form-textarea" rows="2">${p ? escapeHtml(p.observaciones || '') : ''}</textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secundario" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnGuardarPat">${p ? 'Guardar cambios' : 'Crear patrocinador'}</button>
+      </div>
+    </form>
+  `;
+}
+
+function conectarFormPat(p) {
+  // Preview de logo al seleccionar
+  document.getElementById('logoFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const box = document.querySelector('#logoFile').closest('.upload-box');
+      // Reemplazar preview si existe, o crear nueva
+      let prev = box.querySelector('.upload-preview');
+      if (!prev) {
+        const icon = box.querySelector('.upload-icon');
+        if (icon) icon.remove();
+        prev = document.createElement('img');
+        prev.className = 'upload-preview';
+        box.insertBefore(prev, box.firstChild);
+      }
+      prev.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  document.getElementById('bannerFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const box = document.querySelector('#bannerFile').closest('.upload-box');
+      let prev = box.querySelector('.upload-banner-preview');
+      if (!prev) {
+        const icon = box.querySelector('.upload-icon');
+        if (icon) icon.remove();
+        prev = document.createElement('img');
+        prev.className = 'upload-banner-preview';
+        box.insertBefore(prev, box.firstChild);
+      }
+      prev.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  });
+
+  document.getElementById('formPat').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardarPat');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    try {
+      const logoInput = document.getElementById('logoFile');
+      const bannerInput = document.getElementById('bannerFile');
+
+      let logoData = null;
+      let bannerData = null;
+      if (logoInput.files.length > 0) {
+        logoData = await leerArchivoBase64(logoInput);
+      }
+      if (bannerInput.files.length > 0) {
+        bannerData = await leerArchivoBase64(bannerInput);
+      }
+
+      const params = {
+        nombre: document.getElementById('nombre').value.trim(),
+        tier: document.getElementById('tier').value,
+        orden: document.getElementById('orden').value,
+        sitio_web: document.getElementById('sitio_web').value.trim(),
+        telefono: document.getElementById('telefono').value.trim(),
+        activo: document.getElementById('activo').checked ? 'SI' : 'NO',
+        observaciones: document.getElementById('observaciones').value.trim()
+      };
+
+      if (logoData) {
+        params.logo_base64 = logoData.base64;
+        params.logo_extension = logoData.extension;
+      }
+      if (bannerData) {
+        params.banner_base64 = bannerData.base64;
+        params.banner_extension = bannerData.extension;
+      }
+
+      let r;
+      if (p) {
+        params.id = p.id;
+        r = await apiCall('actualizarPatrocinador', params);
+      } else {
+        r = await apiCall('crearPatrocinador', params);
+      }
+
+      if (!r.success) {
+        toastError(r.mensaje);
+        btn.disabled = false;
+        btn.textContent = p ? 'Guardar cambios' : 'Crear patrocinador';
+        return;
+      }
+
+      toastSuccess(p ? 'Patrocinador actualizado' : 'Patrocinador creado');
+      closeModal();
+      cargarPatrocinadores();
+    } catch (e) {
+      toastError('Error: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = p ? 'Guardar cambios' : 'Crear patrocinador';
+    }
+  });
+}
+
+async function eliminarPat(idPat, nombre) {
+  const ok = await confirmar(`¿Eliminar al patrocinador "${nombre}"? Esta acción no se puede deshacer.`, {
+    txtSi: 'Sí, eliminar',
+    peligroso: true
+  });
+  if (!ok) return;
+
+  const r = await apiCall('eliminarPatrocinador', { id: idPat });
+  if (!r.success) { toastError(r.mensaje); return; }
+  toastSuccess('Patrocinador eliminado');
+  cargarPatrocinadores();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEDES
+// ═══════════════════════════════════════════════════════════════
+
+async function cargarSedes() {
+  const r = await apiCall('getSedes');
+  const cont = document.getElementById('sedesContent');
+  if (!r.success) { cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>'; return; }
+  if (!r.data || r.data.length === 0) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">📍</div>No hay sedes activas</div>';
+    return;
+  }
+  let html = `<div class="tabla-wrap"><table class="tabla">
+    <thead><tr><th>ID</th><th>Nombre</th><th>Dirección</th><th>Capacidad</th></tr></thead><tbody>`;
+  r.data.forEach(s => {
+    html += `<tr>
+      <td><strong>${s.id}</strong></td>
+      <td>${escapeHtml(s.nombre)}</td>
+      <td>${escapeHtml(s.direccion || '—')}</td>
+      <td>${s.capacidad ? s.capacidad + ' personas' : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+// INIT
+cargarConfig();
+cargarCategorias();
+cargarPatrocinadores();
+cargarSedes();
+</script>
+
+</body>
+</html>
