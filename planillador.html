@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#E30613">
+<title>Planillador · Copa Bon Bon Bum 2026</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="_shared.js"></script>
+
+<style>
+  html, body {
+    background: var(--gris-bg);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body { padding-bottom: 80px; min-height: 100vh; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--rojo);
+    color: var(--blanco);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1.1;
+  }
+  .topbar-titulo small {
+    display: block;
+    font-size: 10px;
+    color: var(--amarillo);
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .btn-back, .btn-help, .btn-logout-mini {
+    background: rgba(255,255,255,0.2);
+    color: var(--blanco);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .btn-back:active, .btn-help:active { background: rgba(255,255,255,0.3); }
+
+  /* Indicador de conexión */
+  .conn-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.15);
+    color: var(--blanco);
+    margin-right: 6px;
+  }
+  .conn-status.online { background: rgba(45,169,79,0.25); }
+  .conn-status.offline {
+    background: rgba(255,204,0,0.3);
+    color: var(--amarillo);
+    animation: pulseOffline 1.5s infinite;
+  }
+  @keyframes pulseOffline {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .conn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Banner sin conexión grande */
+  .offline-banner {
+    background: var(--amarillo);
+    color: var(--texto);
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: center;
+    box-shadow: var(--shadow);
+  }
+  .offline-banner-icon { font-size: 22px; }
+
+  /* Foto de presentación card */
+  .foto-presentacion-card {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
+    color: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .foto-presentacion-card h4 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .foto-presentacion-btn {
+    background: var(--amarillo);
+    color: var(--texto);
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 0 var(--amarillo-osc);
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .foto-presentacion-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--amarillo-osc); }
+  .foto-presentacion-btn input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .foto-presentacion-preview {
+    margin-top: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 200px;
+  }
+  .foto-presentacion-preview img {
+    width: 100%;
+    display: block;
+  }
+  .foto-pres-estado {
+    margin-top: 8px;
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  /* CONTAINER */
+  .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  /* TIPS BANNER (fijo arriba con info de la categoría) */
+  .tips-banner {
+    background: linear-gradient(135deg, var(--amarillo) 0%, var(--amarillo-osc) 100%);
+    color: var(--texto);
+    padding: 10px 16px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .tips-banner-icon { font-size: 24px; }
+  .tips-banner-content { font-size: 13px; line-height: 1.4; }
+  .tips-banner-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .tips-banner-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tips-banner-lista li {
+    padding: 1px 0;
+    font-weight: 600;
+  }
+  .tips-banner-lista li::before {
+    content: '• ';
+    color: var(--rojo);
+    font-weight: 900;
+  }
+
+  /* PANTALLA LISTA */
+  .filtros-fechas {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chip-fecha {
+    background: var(--blanco);
+    border: 2px solid var(--gris-cl);
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .chip-fecha.activo { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
+
+  .partido-item {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: rgba(227,6,19,0.1);
+  }
+  .partido-item:active { transform: scale(0.98); }
+  .partido-item.vivo {
+    border-left: 5px solid var(--rojo);
+    animation: pulseLeft 2s infinite;
+  }
+  @keyframes pulseLeft {
+    0%, 100% { border-left-color: var(--rojo); }
+    50% { border-left-color: #ff5050; }
+  }
+  .partido-item.finalizado { opacity: 0.6; }
+
+  .partido-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--gris);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .partido-equipos {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: center;
+  }
+  .equipo-bloque {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 0;
+  }
+  .equipo-bloque.visit { flex-direction: row-reverse; text-align: right; }
+  .equipo-bloque-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .score {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--rojo);
+    min-width: 60px;
+    text-align: center;
+  }
+  .score.vs { font-size: 13px; color: var(--gris); letter-spacing: 2px; }
+
+  /* PANTALLA PARTIDO */
+  .partido-header {
+    background: var(--texto);
+    color: var(--blanco);
+    padding: 14px 16px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+  .partido-header-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .marcador-bloque {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .equipo-marcador { text-align: center; }
+  .equipo-marcador-escudo {
+    width: 50px;
+    height: 50px;
+    background: var(--blanco);
+    border-radius: 12px;
+    margin: 0 auto 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+    color: var(--rojo);
+    font-weight: 900;
+    font-size: 14px;
+  }
+  .equipo-marcador-escudo img { width: 100%; height: 100%; object-fit: cover; }
+  .equipo-marcador-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    line-height: 1.1;
+  }
+  .marcador-gol {
+    font-family: 'Nunito', sans-serif;
+    font-size: 46px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--amarillo);
+    letter-spacing: -2px;
+  }
+
+  /* TABS DEL PARTIDO */
+  .partido-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--blanco);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .partido-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 8px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    color: var(--gris);
+    border-radius: 8px;
+    transition: all 0.15s;
+    white-space: nowrap;
+    min-width: 80px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .partido-tab-btn.activo {
+    background: var(--rojo);
+    color: var(--blanco);
+  }
+  .partido-tab-btn .tab-icon {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .partido-tab-btn .tab-check {
+    display: inline-block;
+    margin-left: 2px;
+    color: var(--verde);
+  }
+  .partido-tab-btn.activo .tab-check { color: var(--blanco); }
+
+  .partido-tab-panel { display: none; }
+  .partido-tab-panel.activo { display: block; }
+
+  /* CRONÓMETRO */
+  .crono-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .crono-tiempo {
+    font-size: 12px;
+    color: var(--gris);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .crono-display {
+    font-family: 'Nunito', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--rojo);
+    line-height: 1;
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+  }
+  .crono-controles {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-crono {
+    background: var(--rojo);
+    color: var(--blanco);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 90px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-crono:active { transform: scale(0.95); }
+  .btn-crono.secundario {
+    background: var(--gris-bg);
+    color: var(--texto);
+  }
+  .btn-crono.tiempo {
+    padding: 8px 14px;
+    background: var(--gris-bg);
+    color: var(--texto);
+    min-width: auto;
+    font-size: 12px;
+  }
+  .btn-crono.tiempo.activo {
+    background: var(--rojo);
+    color: var(--blanco);
+  }
+
+  /* BOTONES GRANDES DE ACCIÓN */
+  .acciones-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .btn-accion {
+    background: var(--blanco);
+    border: 3px solid var(--gris-cl);
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-accion:active { transform: scale(0.96); }
+  .btn-accion-gol {
+    background: linear-gradient(135deg, var(--verde) 0%, var(--verde-osc) 100%);
+    color: var(--blanco);
+    border-color: var(--verde-osc);
+    box-shadow: 0 4px 0 var(--verde-osc);
+  }
+  .btn-accion-amarilla {
+    background: var(--amarillo);
+    color: var(--texto);
+    border-color: var(--amarillo-osc);
+    box-shadow: 0 4px 0 var(--amarillo-osc);
+  }
+  .btn-accion-roja {
+    background: var(--rojo);
+    color: var(--blanco);
+    border-color: var(--rojo-osc);
+    box-shadow: 0 4px 0 var(--rojo-osc);
+  }
+  .btn-accion-icono {
+    font-size: 28px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .btn-accion-texto {
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  .btn-accion-equipo {
+    font-size: 11px;
+    opacity: 0.85;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* TIMELINE DE EVENTOS */
+  .eventos-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .eventos-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    color: var(--gris);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gris-cl);
+  }
+  .evento-item {
+    display: grid;
+    grid-template-columns: 38px auto 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gris-cl);
+    align-items: center;
+    font-size: 13px;
+  }
+  .evento-item:last-child { border-bottom: none; }
+  .evento-minuto {
+    background: var(--texto);
+    color: var(--blanco);
+    padding: 4px 6px;
+    border-radius: 6px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+  }
+  .evento-icono { font-size: 18px; }
+  .evento-desc strong { font-weight: 800; }
+  .evento-desc small { color: var(--gris); font-size: 11px; display: block; }
+
+  /* ═════ ALINEACIONES TAB ═════ */
+  .alineacion-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .alineacion-card-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--rojo);
+  }
+  .selector-tiempo-grid {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .selector-tiempo-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--gris-cl);
+    background: var(--gris-bg);
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .selector-tiempo-btn.activo {
+    background: var(--rojo);
+    color: var(--blanco);
+    border-color: var(--rojo);
+  }
+  .selector-tiempo-btn small {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .jugador-alineacion-row {
+    display: grid;
+    grid-template-columns: 44px 32px 1fr auto auto;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid var(--gris-cl);
+    align-items: center;
+    font-size: 13px;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+  .jugador-alineacion-row:last-child { border-bottom: none; }
+  .jugador-alineacion-row.activo { background: rgba(45,169,79,0.08); }
+  .jugador-alineacion-row.aun-no-jugo { background: rgba(255,204,0,0.08); }
+  .jugador-check {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--gris-cl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blanco);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .jugador-alineacion-row.activo .jugador-check {
+    background: var(--verde);
+    border-color: var(--verde);
+    color: var(--blanco);
+    font-weight: 900;
+  }
+  .jugador-num-mini {
+    width: 32px;
+    height: 32px;
+    background: var(--texto);
+    color: var(--amarillo);
+    border-radius: 6px;
+    text-align: center;
+    line-height: 32px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+  }
+  .jugador-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+  .toggle-rol {
+    background: var(--gris-cl);
+    border: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    color: var(--gris);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toggle-rol.activo-c {
+    background: var(--rojo);
+    color: var(--blanco);
+  }
+  .toggle-rol.activo-a {
+    background: var(--amarillo);
+    color: var(--texto);
+  }
+  .alerta-min {
+    background: rgba(255,204,0,0.15);
+    border-left: 4px solid var(--amarillo-osc);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+  .alerta-ok {
+    background: rgba(45,169,79,0.1);
+    border-left: 4px solid var(--verde);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+  }
+
+  /* ═════ COMPORTAMIENTO TAB ═════ */
+  .comp-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .comp-card h4 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: var(--rojo);
+  }
+  .puntos-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .puntos-equipo {
+    text-align: center;
+  }
+  .puntos-equipo-nombre {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: var(--texto-2);
+  }
+  .puntos-grupo {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .puntos-btn {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--gris-cl);
+    background: var(--blanco);
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .puntos-btn.activo {
+    background: var(--rojo);
+    color: var(--blanco);
+    border-color: var(--rojo);
+  }
+  .puntos-tipo {
+    font-size: 10px;
+    color: var(--gris);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .comp-eval-grupo {
+    margin-bottom: 14px;
+  }
+  .comp-eval-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gris-cl);
+    font-size: 13px;
+  }
+  .comp-eval-row:last-child { border-bottom: none; }
+  .comp-eval-label { font-weight: 600; }
+  .comp-eval-btn {
+    padding: 6px 10px;
+    border: 2px solid var(--gris-cl);
+    background: var(--blanco);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .comp-eval-btn.activo-B { background: var(--verde); color: var(--blanco); border-color: var(--verde); }
+  .comp-eval-btn.activo-R { background: var(--amarillo); color: var(--texto); border-color: var(--amarillo-osc); }
+  .comp-eval-btn.activo-M { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
+
+  /* BOTÓN FINALIZAR */
+  .btn-finalizar {
+    width: 100%;
+    background: var(--rojo);
+    color: var(--blanco);
+    border: none;
+    padding: 18px;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--rojo-osc);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-finalizar:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--rojo-osc); }
+
+  /* MODAL SELECCIÓN JUGADOR */
+  .modal-jugador-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .jugador-card-modal {
+    background: var(--gris-bg);
+    border: 2px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .jugador-card-modal:active { transform: scale(0.95); }
+  .jugador-card-modal.seleccionado { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
+  .jugador-card-num {
+    width: 38px;
+    height: 38px;
+    background: var(--texto);
+    color: var(--amarillo);
+    border-radius: 8px;
+    margin: 0 auto 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .jugador-card-modal.seleccionado .jugador-card-num { background: var(--blanco); color: var(--rojo); }
+  .jugador-card-nombre {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .input-minuto {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--gris-cl);
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  /* SELECCIÓN EQUIPO PARA TARJETA */
+  .selector-equipo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .selector-equipo-btn {
+    background: var(--gris-bg);
+    border: 2px solid var(--gris-cl);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .selector-equipo-btn.activo { background: var(--rojo); color: var(--blanco); border-color: var(--rojo); }
+
+  /* MODAL FINALIZAR */
+  .resumen-final {
+    background: var(--gris-bg);
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .resumen-final-marcador {
+    font-family: 'Nunito', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: var(--rojo);
+    line-height: 1;
+    margin: 8px 0;
+  }
+  .resumen-final-equipos {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  /* WELCOME MODAL */
+  .welcome-banner {
+    background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
+    color: var(--blanco);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+  .welcome-banner h4 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .welcome-reglas {
+    margin-top: 10px;
+  }
+  .welcome-regla {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .welcome-regla-icon {
+    width: 24px;
+    text-align: center;
+  }
+
+  .alerta-no-permite {
+    background: rgba(227,6,19,0.08);
+    border-left: 4px solid var(--rojo);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--rojo);
+    font-weight: 600;
+  }
+
+  /* BANNER DE CONEXIÓN */
+  .conn-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 10px 16px;
+    text-align: center;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--blanco);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+  }
+  .conn-banner.offline {
+    display: flex;
+    background: var(--rojo);
+    animation: slideUp 0.3s;
+  }
+  .conn-banner.online {
+    display: flex;
+    background: var(--verde);
+    animation: slideUp 0.3s;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .conn-banner-icon { font-size: 16px; }
+
+  /* AJUSTE: dejar espacio abajo cuando el banner está visible */
+  body.has-conn-banner { padding-bottom: 60px; }
+
+  /* FOTO PRESENTACIÓN */
+  .foto-pres-card {
+    background: var(--blanco);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .foto-pres-card h4 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--rojo);
+  }
+  .foto-pres-card p {
+    font-size: 12px;
+    color: var(--gris);
+    margin-bottom: 12px;
+  }
+  .foto-pres-btn {
+    display: block;
+    border: 2px dashed var(--gris-cl);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .foto-pres-btn:active { transform: scale(0.98); background: var(--gris-bg); }
+  .foto-pres-btn.tiene-foto {
+    border: 2px solid var(--verde);
+    background: rgba(45,169,79,0.05);
+  }
+  .foto-pres-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .foto-pres-btn input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn-back" id="btnBack" style="display:none;">←</button>
+      <div class="topbar-titulo">
+        <span id="topTitulo">Planillador</span>
+        <small id="topSubtitulo">PARTIDOS DE HOY</small>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn-help" id="btnHelp" style="display:none;" onclick="mostrarReglas()">?</button>
+      <button class="btn-logout-mini" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+
+  <!-- CONTAINER PRINCIPAL -->
+  <div class="container" id="vistaPrincipal">
+
+    <!-- VISTA LISTA -->
+    <div id="vista-lista">
+      <div class="filtros-fechas" id="filtrosFechas"></div>
+      <div id="listaPartidos">
+        <div class="loading">Cargando partidos...</div>
+      </div>
+    </div>
+
+    <!-- VISTA PARTIDO -->
+    <div id="vista-partido" style="display:none;"></div>
+
+  </div>
+
+  <!-- BANNER DE CONEXIÓN -->
+  <div class="conn-banner" id="connBanner">
+    <span class="conn-banner-icon" id="connIcon">⚠️</span>
+    <span id="connTexto">Sin conexión</span>
+  </div>
+
+<script>
+// Solo planilladores
+if (!requireAuth([ROLES.PLANILLADOR])) { /* redirige */ }
+
+// ═══════════════════════════════════════════════════════════════
+// DETECTOR DE CONEXIÓN
+// ═══════════════════════════════════════════════════════════════
+
+let estabaOffline = false;
+let timerOnlineMsg = null;
+
+function actualizarEstadoConexion() {
+  const banner = document.getElementById('connBanner');
+  const icono = document.getElementById('connIcon');
+  const texto = document.getElementById('connTexto');
+  if (!banner) return;
+
+  if (navigator.onLine) {
+    if (estabaOffline) {
+      // Mostrar "conexión recuperada" por 4 segundos
+      banner.className = 'conn-banner online';
+      icono.textContent = '✓';
+      texto.textContent = 'Conexión recuperada';
+      document.body.classList.add('has-conn-banner');
+
+      if (timerOnlineMsg) clearTimeout(timerOnlineMsg);
+      timerOnlineMsg = setTimeout(() => {
+        banner.className = 'conn-banner';
+        document.body.classList.remove('has-conn-banner');
+      }, 4000);
+      estabaOffline = false;
+    }
+  } else {
+    banner.className = 'conn-banner offline';
+    icono.textContent = '⚠️';
+    texto.textContent = 'Sin conexión · Esperá a recuperarla antes de cargar más datos';
+    document.body.classList.add('has-conn-banner');
+    estabaOffline = true;
+
+    if (timerOnlineMsg) clearTimeout(timerOnlineMsg);
+  }
+}
+
+window.addEventListener('online', actualizarEstadoConexion);
+window.addEventListener('offline', actualizarEstadoConexion);
+// Estado inicial
+setTimeout(actualizarEstadoConexion, 100);
+// Re-verificar cada 30s por si el evento no se dispara
+setInterval(actualizarEstadoConexion, 30000);
+
+
+let partidosGlobal = [];
+let partidoActual = null;
+let datosPartido = null;
+let jugadoresLocal = [];
+let jugadoresVisit = [];
+let crono = null;
+let fechaSeleccionada = null;
+let tabActual = 'partido';
+let tiempoActual = 1; // T1, T2 o T3 para alineaciones
+let alineacionLocal = {}; // {tiempo: {idJugador: {presente:bool, capitan:bool, arquero:bool}}}
+let alineacionVisit = {};
+let comportamiento = {
+  pts_prot_local: 0, pts_act_local: 0,
+  pts_prot_visit: 0, pts_act_visit: 0,
+  comp_local_club: '', comp_local_ct: '', comp_local_jug: '',
+  comp_visit_club: '', comp_visit_ct: '', comp_visit_jug: ''
+};
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS DE CATEGORÍA
+// ═══════════════════════════════════════════════════════════════
+
+function infoCategoria(cat) {
+  // cat es el objeto categoria desde el backend
+  return {
+    modalidad: cat.modalidad || 'TORNEO',
+    tiempos: cat.tiempos || 2,
+    minPorTiempo: cat.min_por_tiempo || 0,
+    usaTarjetas: cat.usa_tarjetas === true || cat.usa_tarjetas === 'SI',
+    tieneCampeon: cat.tiene_campeon === true || cat.tiene_campeon === 'SI',
+    ptsProtocoloMax: cat.pts_protocolo_max || 0,
+    ptsActitudMax: cat.pts_actitud_max || 0,
+    minJugadores: cat.min_jugadores || 0,
+    maxJugadores: cat.max_jugadores || 0,
+    maxNinasEnPlanilla: cat.max_niñas_en_planilla || cat['max_ni\u00f1as_en_planilla'] || 0
+  };
+}
+
+function generarTipsCategoria(catId, catObj) {
+  const info = infoCategoria(catObj);
+  const nombre = catObj.nombre || catId;
+  const tips = [];
+
+  tips.push(`${info.tiempos} tiempos × ${info.minPorTiempo}'`);
+
+  if (!info.usaTarjetas) {
+    tips.push('SIN tarjetas');
+  } else {
+    tips.push('Con tarjetas');
+  }
+
+  if (info.ptsProtocoloMax > 0) {
+    tips.push(`Puntos protocolo (max ${info.ptsProtocoloMax})`);
+  }
+  if (info.ptsActitudMax > 0) {
+    tips.push(`Puntos actitud (max ${info.ptsActitudMax})`);
+  }
+
+  if (info.maxNinasEnPlanilla > 0 && info.modalidad !== 'TORNEO') {
+    tips.push(`Máx ${info.maxNinasEnPlanilla} niñas`);
+  }
+
+  if (info.modalidad === 'FESTIVAL' || info.modalidad === 'FESTIVAL_PRE') {
+    tips.push('Cada jugador min 1 tiempo');
+  }
+
+  return { nombre, modalidad: info.modalidad, tips };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VISTA LISTA
+// ═══════════════════════════════════════════════════════════════
+
+async function cargarLista() {
+  document.getElementById('btnBack').style.display = 'none';
+  document.getElementById('btnHelp').style.display = 'none';
+  document.getElementById('topTitulo').textContent = 'Planillador';
+  document.getElementById('topSubtitulo').textContent = getNombre() || getUsuario();
+  document.getElementById('vista-lista').style.display = 'block';
+  document.getElementById('vista-partido').style.display = 'none';
+
+  const cont = document.getElementById('listaPartidos');
+  cont.innerHTML = '<div class="loading">Cargando partidos...</div>';
+
+  const r = await apiCall('listarPartidos');
+  if (!r.success) {
+    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.mensaje) + '</div>';
+    return;
+  }
+  partidosGlobal = r.data || [];
+  renderFiltrosFechas();
+  renderListaPartidos();
+}
+
+function renderFiltrosFechas() {
+  const cont = document.getElementById('filtrosFechas');
+  const fechas = [...new Set(partidosGlobal.map(p => p.fecha).filter(Boolean))].sort();
+  const hoy = new Date().toISOString().split('T')[0];
+
+  if (!fechaSeleccionada) {
+    fechaSeleccionada = fechas.includes(hoy) ? hoy : (fechas[0] || hoy);
+  }
+
+  let html = '';
+  fechas.forEach(f => {
+    const esHoy = f === hoy;
+    const label = esHoy ? 'HOY' : formatearFechaCorta(f);
+    html += `<button class="chip-fecha ${f === fechaSeleccionada ? 'activo' : ''}" onclick="seleccionarFecha('${f}')">${label}</button>`;
+  });
+  cont.innerHTML = html;
+}
+
+function seleccionarFecha(fecha) {
+  fechaSeleccionada = fecha;
+  renderFiltrosFechas();
+  renderListaPartidos();
+}
+
+function renderListaPartidos() {
+  const cont = document.getElementById('listaPartidos');
+  const lista = partidosGlobal.filter(p => p.fecha === fechaSeleccionada);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--gris);">
+        <div style="font-size:48px;opacity:0.4;">📅</div>
+        <p style="font-weight:700;margin-top:10px;">Sin partidos en esta fecha</p>
+      </div>
+    `;
+    return;
+  }
+
+  lista.sort((a, b) => {
+    if (a.estado === 'EN_CURSO' && b.estado !== 'EN_CURSO') return -1;
+    if (b.estado === 'EN_CURSO' && a.estado !== 'EN_CURSO') return 1;
+    return (a.hora || '').localeCompare(b.hora || '');
+  });
+
+  let html = '';
+  lista.forEach(p => {
+    const esVivo = p.estado === 'EN_CURSO';
+    const esFinalizado = ['FINALIZADO', 'WO_LOCAL', 'WO_VISITANTE'].includes(p.estado);
+    const mostrarScore = esVivo || esFinalizado;
+
+    html += `
+      <div class="partido-item ${esVivo ? 'vivo' : ''} ${esFinalizado ? 'finalizado' : ''}" onclick="abrirPartido('${p.id}')">
+        <div class="partido-meta-row">
+          <span>🕐 ${p.hora || '—'} · 📍 ${escapeHtml(p.sede_nombre || 'Sin sede')}</span>
+          <span>${p.categoria}${p.grupo ? ' · G ' + p.grupo : ''}</span>
+        </div>
+        <div class="partido-equipos">
+          <div class="equipo-bloque">
+            ${renderEscudoMini(p.escudo_local, p.nombre_local)}
+            <span class="equipo-bloque-nombre">${escapeHtml(p.nombre_local || '?')}</span>
+          </div>
+          <div class="score ${!mostrarScore ? 'vs' : ''}">
+            ${mostrarScore ? `${p.gol_local}–${p.gol_visitante}` : 'VS'}
+          </div>
+          <div class="equipo-bloque visit">
+            <span class="equipo-bloque-nombre">${escapeHtml(p.nombre_visitante || '?')}</span>
+            ${renderEscudoMini(p.escudo_visitante, p.nombre_visitante)}
+          </div>
+        </div>
+        ${esVivo ? '<div style="margin-top:8px;text-align:center;color:var(--rojo);font-weight:900;font-size:12px;">🔴 EN VIVO · Toque para continuar</div>' : ''}
+        ${esFinalizado ? `<div style="margin-top:8px;text-align:center;font-size:11px;color:var(--gris);">${badgeEstado(p.estado)}</div>` : ''}
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ABRIR PARTIDO
+// ═══════════════════════════════════════════════════════════════
+
+async function abrirPartido(idPartido) {
+  document.getElementById('vista-lista').style.display = 'none';
+  document.getElementById('vista-partido').style.display = 'block';
+  document.getElementById('btnBack').style.display = 'inline-block';
+  document.getElementById('btnHelp').style.display = 'inline-block';
+  document.getElementById('btnBack').onclick = volverALista;
+
+  document.getElementById('vista-partido').innerHTML = '<div class="loading">Cargando partido...</div>';
+
+  const r = await apiCall('obtenerPartido', { id: idPartido });
+  if (!r.success) {
+    toastError(r.mensaje);
+    volverALista();
+    return;
+  }
+
+  partidoActual = r.data.partido;
+  datosPartido = r.data;
+
+  // Cargar jugadores de cada equipo
+  const [rJugLocal, rJugVisit] = await Promise.all([
+    apiCall('listarJugadores', { id_equipo: partidoActual.id_equipo_local, estado: 'APROBADO' }),
+    apiCall('listarJugadores', { id_equipo: partidoActual.id_equipo_visitante, estado: 'APROBADO' })
+  ]);
+
+  jugadoresLocal = rJugLocal.success ? rJugLocal.data : [];
+  jugadoresVisit = rJugVisit.success ? rJugVisit.data : [];
+
+  // Ordenar por número
+  jugadoresLocal.sort((a, b) => (Number(a.numero_camiseta) || 99) - (Number(b.numero_camiseta) || 99));
+  jugadoresVisit.sort((a, b) => (Number(a.numero_camiseta) || 99) - (Number(b.numero_camiseta) || 99));
+
+  // Reconstruir alineaciones desde lo ya guardado
+  reconstruirAlineaciones();
+
+  // Reconstruir comportamiento desde el partido (campos en partido o en observaciones)
+  reconstruirComportamiento();
+
+  // Inicializar cronómetro
+  inicializarCronometro();
+
+  document.getElementById('topTitulo').textContent = `${partidoActual.nombre_local} vs ${partidoActual.nombre_visitante}`;
+  document.getElementById('topSubtitulo').textContent = `${partidoActual.fecha} · ${partidoActual.hora}`;
+
+  // Mostrar welcome modal si nunca lo abrió
+  const welcomeKey = 'bbb_welcome_' + partidoActual.id;
+  if (!localStorage.getItem(welcomeKey)) {
+    mostrarReglas(true);
+    localStorage.setItem(welcomeKey, '1');
+  }
+
+  renderVistaPartido();
+}
+
+function reconstruirAlineaciones() {
+  alineacionLocal = {};
+  alineacionVisit = {};
+  const cat = datosPartido.categoria || {};
+  const info = infoCategoria(cat);
+
+  // Inicializar estructura
+  for (let t = 1; t <= info.tiempos; t++) {
+    alineacionLocal[t] = {};
+    alineacionVisit[t] = {};
+  }
+
+  // Si hay alineaciones guardadas, las cargamos
+  const ali = datosPartido.alineaciones || [];
+  ali.forEach(a => {
+    const target = a.id_equipo === partidoActual.id_equipo_local ? alineacionLocal : alineacionVisit;
+    const t = Number(a.tiempo) || 1;
+    if (!target[t]) target[t] = {};
+    target[t][a.id_jugador] = {
+      presente: true,
+      capitan: a.es_capitan === true || a.es_capitan === 'SI',
+      arquero: a.es_arquero === true || a.es_arquero === 'SI'
+    };
+  });
+}
+
+function reconstruirComportamiento() {
+  comportamiento.pts_prot_local = Number(partidoActual.pts_prot_local) || 0;
+  comportamiento.pts_act_local = Number(partidoActual.pts_act_local) || 0;
+  comportamiento.pts_prot_visit = Number(partidoActual.pts_prot_visit) || 0;
+  comportamiento.pts_act_visit = Number(partidoActual.pts_act_visit) || 0;
+
+  // Parsear observaciones si tienen formato estructurado
+  const obs = partidoActual.observaciones || '';
+  const matchL = obs.match(/COMP_LOCAL:([^|]*)/);
+  const matchV = obs.match(/COMP_VISIT:([^|]*)/);
+  if (matchL) {
+    const partes = matchL[1].split(',');
+    partes.forEach(p => {
+      const [k, v] = p.split('=');
+      if (k && v) {
+        const key = 'comp_local_' + k.trim();
+        if (comportamiento[key] !== undefined) comportamiento[key] = v.trim();
+      }
+    });
+  }
+  if (matchV) {
+    const partes = matchV[1].split(',');
+    partes.forEach(p => {
+      const [k, v] = p.split('=');
+      if (k && v) {
+        const key = 'comp_visit_' + k.trim();
+        if (comportamiento[key] !== undefined) comportamiento[key] = v.trim();
+      }
+    });
+  }
+}
+
+function volverALista() {
+  if (crono && crono.corriendo) {
+    if (!confirm('El cronómetro está corriendo. ¿Querés salir igual?')) return;
+    pausarCronometro();
+  }
+  partidoActual = null;
+  datosPartido = null;
+  cargarLista();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VISTA PARTIDO PRINCIPAL
+// ═══════════════════════════════════════════════════════════════
+
+function renderVistaPartido() {
+  const p = partidoActual;
+  const cont = document.getElementById('vista-partido');
+  const cat = datosPartido.categoria || {};
+  const info = infoCategoria(cat);
+  const tipsInfo = generarTipsCategoria(p.categoria, cat);
+
+  cont.innerHTML = `
+    <!-- TIPS BANNER -->
+    <div class="tips-banner">
+      <div class="tips-banner-icon">💡</div>
+      <div class="tips-banner-content">
+        <div class="tips-banner-titulo">${escapeHtml(tipsInfo.nombre)} · ${escapeHtml(tipsInfo.modalidad)}</div>
+        <ul class="tips-banner-lista">
+          ${tipsInfo.tips.map(t => `<li>${escapeHtml(t)}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <!-- HEADER MARCADOR -->
+    <div class="partido-header">
+      <div class="partido-header-meta">
+        <span>📍 ${escapeHtml(p.sede_nombre || '—')}</span>
+        <span>${p.categoria}${p.grupo ? ' · Grupo ' + p.grupo : ''}</span>
+      </div>
+      <div class="marcador-bloque">
+        <div class="equipo-marcador">
+          <div class="equipo-marcador-escudo">${p.escudo_local ? `<img src="${escapeHtml(p.escudo_local)}" onerror="this.outerHTML='${siglas(p.nombre_local)}'">` : siglas(p.nombre_local)}</div>
+          <div class="equipo-marcador-nombre">${escapeHtml(p.nombre_local)}</div>
+        </div>
+        <div>
+          <span class="marcador-gol" id="golLocal">${p.gol_local || 0}</span>
+          <span style="margin: 0 8px;color:rgba(255,255,255,0.4);">–</span>
+          <span class="marcador-gol" id="golVisit">${p.gol_visitante || 0}</span>
+        </div>
+        <div class="equipo-marcador">
+          <div class="equipo-marcador-escudo">${p.escudo_visitante ? `<img src="${escapeHtml(p.escudo_visitante)}" onerror="this.outerHTML='${siglas(p.nombre_visitante)}'">` : siglas(p.nombre_visitante)}</div>
+          <div class="equipo-marcador-nombre">${escapeHtml(p.nombre_visitante)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="partido-tabs">
+      <button class="partido-tab-btn ${tabActual === 'alineaciones' ? 'activo' : ''}" onclick="cambiarTab('alineaciones')">
+        <span class="tab-icon">👥</span>
+        Alineac.
+      </button>
+      <button class="partido-tab-btn ${tabActual === 'partido' ? 'activo' : ''}" onclick="cambiarTab('partido')">
+        <span class="tab-icon">⚽</span>
+        Partido
+      </button>
+      <button class="partido-tab-btn ${tabActual === 'comportamiento' ? 'activo' : ''}" onclick="cambiarTab('comportamiento')">
+        <span class="tab-icon">📋</span>
+        Comport.
+      </button>
+      <button class="partido-tab-btn ${tabActual === 'finalizar' ? 'activo' : ''}" onclick="cambiarTab('finalizar')">
+        <span class="tab-icon">✓</span>
+        Finalizar
+      </button>
+    </div>
+
+    <!-- TAB ALINEACIONES -->
+    <div class="partido-tab-panel ${tabActual === 'alineaciones' ? 'activo' : ''}" id="tab-alineaciones">
+      ${renderTabAlineaciones(info)}
+    </div>
+
+    <!-- TAB PARTIDO -->
+    <div class="partido-tab-panel ${tabActual === 'partido' ? 'activo' : ''}" id="tab-partido">
+      ${renderTabPartido(info)}
+    </div>
+
+    <!-- TAB COMPORTAMIENTO -->
+    <div class="partido-tab-panel ${tabActual === 'comportamiento' ? 'activo' : ''}" id="tab-comportamiento">
+      ${renderTabComportamiento(info)}
+    </div>
+
+    <!-- TAB FINALIZAR -->
+    <div class="partido-tab-panel ${tabActual === 'finalizar' ? 'activo' : ''}" id="tab-finalizar">
+      ${renderTabFinalizar(info)}
+    </div>
+  `;
+
+  // Conectar eventos según la tab activa
+  if (tabActual === 'partido') conectarTabPartido();
+  if (tabActual === 'alineaciones') conectarTabAlineaciones();
+  if (tabActual === 'comportamiento') conectarTabComportamiento();
+  if (tabActual === 'finalizar') conectarTabFinalizar();
+}
+
+function cambiarTab(tab) {
+  tabActual = tab;
+  renderVistaPartido();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: ALINEACIONES
+// ═══════════════════════════════════════════════════════════════
+
+function renderTabAlineaciones(info) {
+  let selectorTiempos = '<div class="selector-tiempo-grid">';
+  for (let t = 1; t <= info.tiempos; t++) {
+    const localCount = Object.values(alineacionLocal[t] || {}).filter(j => j.presente).length;
+    const visitCount = Object.values(alineacionVisit[t] || {}).filter(j => j.presente).length;
+    selectorTiempos += `
+      <button class="selector-tiempo-btn ${tiempoActual === t ? 'activo' : ''}" onclick="cambiarTiempoAlineacion(${t})">
+        Tiempo ${t}
+        <small>${localCount}L · ${visitCount}V</small>
+      </button>
+    `;
+  }
+  selectorTiempos += '</div>';
+
+  // Validación: jugadores que no han jugado ningún tiempo
+  const sinJugarLocal = jugadoresLocal.filter(j => !algunaVezJuega(j.id, alineacionLocal, info.tiempos));
+  const sinJugarVisit = jugadoresVisit.filter(j => !algunaVezJuega(j.id, alineacionVisit, info.tiempos));
+
+  let alertaValid = '';
+  if (info.modalidad === 'FESTIVAL' || info.modalidad === 'FESTIVAL_PRE') {
+    if (sinJugarLocal.length === 0 && sinJugarVisit.length === 0 && jugadoresLocal.length > 0 && jugadoresVisit.length > 0) {
+      alertaValid = '<div class="alerta-ok">✓ Todos los jugadores tienen al menos 1 tiempo asignado</div>';
+    } else if (sinJugarLocal.length > 0 || sinJugarVisit.length > 0) {
+      const partes = [];
+      if (sinJugarLocal.length > 0) partes.push(`${sinJugarLocal.length} en ${escapeHtml(partidoActual.nombre_local)}`);
+      if (sinJugarVisit.length > 0) partes.push(`${sinJugarVisit.length} en ${escapeHtml(partidoActual.nombre_visitante)}`);
+      alertaValid = `<div class="alerta-min">⚠️ Faltan jugadores por asignar al menos 1 tiempo: ${partes.join(', ')}</div>`;
+    }
+  }
+
+  // Foto presentación: ya subida o pendiente
+  const tieneFoto = partidoActual.foto_presentacion_url ? true : false;
+
+  return `
+    <div class="foto-pres-card">
+      <h4>📸 Foto de presentación de equipos</h4>
+      <p>Tomá la foto del saludo / formación previa al inicio del partido. Esta foto es importante para los puntos de protocolo.</p>
+      <label class="foto-pres-btn ${tieneFoto ? 'tiene-foto' : ''}">
+        ${tieneFoto ? `<img src="${escapeHtml(partidoActual.foto_presentacion_url)}" class="foto-pres-preview" onerror="this.style.display='none'">` : ''}
+        <div style="font-size:28px;${tieneFoto ? 'display:none' : ''}">📷</div>
+        <div style="font-weight:800;font-size:14px;color:var(--texto);">
+          ${tieneFoto ? '✓ Foto subida (toca para reemplazar)' : 'Tocar para tomar foto'}
+        </div>
+        <input type="file" accept="image/*" capture="environment" onchange="subirFotoPresentacion(event)">
+      </label>
+    </div>
+
+    <div class="alineacion-card">
+      <div class="alineacion-card-titulo">Seleccionar tiempo</div>
+      ${selectorTiempos}
+      ${alertaValid}
+    </div>
+
+    <div class="alineacion-card">
+      <div class="alineacion-card-titulo">${escapeHtml(partidoActual.nombre_local)} (LOCAL)</div>
+      ${renderJugadoresAlineacion('local', jugadoresLocal, alineacionLocal[tiempoActual] || {}, info)}
+    </div>
+
+    <div class="alineacion-card">
+      <div class="alineacion-card-titulo">${escapeHtml(partidoActual.nombre_visitante)} (VISITANTE)</div>
+      ${renderJugadoresAlineacion('visit', jugadoresVisit, alineacionVisit[tiempoActual] || {}, info)}
+    </div>
+
+    <button class="btn-finalizar" style="background:var(--verde);box-shadow:0 4px 0 var(--verde-osc);" onclick="guardarAlineaciones()">
+      💾 GUARDAR ALINEACIONES
+    </button>
+  `;
+}
+
+async function subirFotoPresentacion(ev) {
+  const input = ev.target;
+  if (!input.files || input.files.length === 0) return;
+
+  if (!navigator.onLine) {
+    toastWarning('⚠️ Sin conexión. Subí la foto cuando vuelva el internet.');
+    input.value = '';
+    return;
+  }
+
+  toast('Subiendo foto...', 'info', 2000);
+
+  try {
+    const fotoData = await leerArchivoBase64(input);
+    if (!fotoData) {
+      toastError('No se pudo leer la foto');
+      return;
+    }
+
+    const r = await apiCall('subirFotoPresentacion', {
+      id_partido: partidoActual.id,
+      foto_base64: fotoData.base64,
+      foto_extension: fotoData.extension
+    });
+
+    if (!r.success) {
+      // Fallback: si el endpoint no existe en el backend, guardamos como observación
+      if (r.codigo === 'ACCION_DESCONOCIDA') {
+        toastWarning('Endpoint nuevo. Pedile a Farid que actualice el backend.');
+      } else {
+        toastError(r.mensaje);
+      }
+      return;
+    }
+
+    toastSuccess('✓ Foto de presentación guardada');
+    partidoActual.foto_presentacion_url = r.data.url || '';
+    renderVistaPartido();
+  } catch (e) {
+    toastError('Error: ' + e.message);
+  }
+}
+
+function algunaVezJuega(idJug, alineacionPorTiempo, totalTiempos) {
+  for (let t = 1; t <= totalTiempos; t++) {
+    const datos = (alineacionPorTiempo[t] || {})[idJug];
+    if (datos && datos.presente) return true;
+  }
+  return false;
+}
+
+function renderJugadoresAlineacion(lado, jugadores, alineacionEsteTiempo, info) {
+  if (jugadores.length === 0) {
+    return '<div style="padding:14px;text-align:center;color:var(--gris);">Este equipo no tiene jugadores aprobados</div>';
+  }
+
+  let html = '';
+  jugadores.forEach(j => {
+    const datos = alineacionEsteTiempo[j.id] || {};
+    const activo = datos.presente;
+    const capitan = datos.capitan;
+    const arquero = datos.arquero;
+
+    // Marca si este jugador nunca ha jugado en ningún tiempo (para warning visual)
+    const fuente = lado === 'local' ? alineacionLocal : alineacionVisit;
+    const nuncaJugo = !algunaVezJuega(j.id, fuente, info.tiempos);
+
+    html += `
+      <div class="jugador-alineacion-row ${activo ? 'activo' : ''} ${nuncaJugo && !activo ? 'aun-no-jugo' : ''}"
+           onclick="togglePresente('${lado}', '${j.id}')">
+        <div class="jugador-check">${activo ? '✓' : ''}</div>
+        <div class="jugador-num-mini">${j.numero_camiseta || '?'}</div>
+        <div class="jugador-nombre">${escapeHtml(j.apellidos || j.nombres)}</div>
+        <button class="toggle-rol ${capitan ? 'activo-c' : ''}" onclick="event.stopPropagation(); toggleCapitan('${lado}', '${j.id}')" ${!activo ? 'disabled style="opacity:0.4"' : ''}>C</button>
+        <button class="toggle-rol ${arquero ? 'activo-a' : ''}" onclick="event.stopPropagation(); toggleArquero('${lado}', '${j.id}')" ${!activo ? 'disabled style="opacity:0.4"' : ''}>A</button>
+      </div>
+    `;
+  });
+  return html;
+}
+
+function cambiarTiempoAlineacion(t) {
+  tiempoActual = t;
+  renderVistaPartido();
+}
+
+function togglePresente(lado, idJug) {
+  const target = lado === 'local' ? alineacionLocal : alineacionVisit;
+  if (!target[tiempoActual]) target[tiempoActual] = {};
+  if (!target[tiempoActual][idJug]) target[tiempoActual][idJug] = { presente: false, capitan: false, arquero: false };
+  target[tiempoActual][idJug].presente = !target[tiempoActual][idJug].presente;
+  if (!target[tiempoActual][idJug].presente) {
+    target[tiempoActual][idJug].capitan = false;
+    target[tiempoActual][idJug].arquero = false;
+  }
+  renderVistaPartido();
+}
+
+function toggleCapitan(lado, idJug) {
+  const target = lado === 'local' ? alineacionLocal : alineacionVisit;
+  if (!target[tiempoActual] || !target[tiempoActual][idJug] || !target[tiempoActual][idJug].presente) return;
+  // Solo un capitán por tiempo
+  for (const k in target[tiempoActual]) {
+    if (k !== idJug) target[tiempoActual][k].capitan = false;
+  }
+  target[tiempoActual][idJug].capitan = !target[tiempoActual][idJug].capitan;
+  renderVistaPartido();
+}
+
+function toggleArquero(lado, idJug) {
+  const target = lado === 'local' ? alineacionLocal : alineacionVisit;
+  if (!target[tiempoActual] || !target[tiempoActual][idJug] || !target[tiempoActual][idJug].presente) return;
+  target[tiempoActual][idJug].arquero = !target[tiempoActual][idJug].arquero;
+  renderVistaPartido();
+}
+
+async function guardarAlineaciones() {
+  // Construir array para enviar
+  const lista = [];
+  ['local', 'visit'].forEach(lado => {
+    const idEquipo = lado === 'local' ? partidoActual.id_equipo_local : partidoActual.id_equipo_visitante;
+    const fuente = lado === 'local' ? alineacionLocal : alineacionVisit;
+    for (const t in fuente) {
+      for (const idJug in fuente[t]) {
+        if (fuente[t][idJug].presente) {
+          lista.push({
+            id_equipo: idEquipo,
+            id_jugador: idJug,
+            tiempo: Number(t),
+            es_capitan: !!fuente[t][idJug].capitan,
+            es_arquero: !!fuente[t][idJug].arquero
+          });
+        }
+      }
+    }
+  });
+
+  if (lista.length === 0) {
+    toastWarning('No hay jugadores marcados en ningún tiempo');
+    return;
+  }
+
+  toast('Guardando alineaciones...', 'info', 1500);
+
+  const r = await apiCall('registrarAlineacion', {
+    id_partido: partidoActual.id,
+    alineaciones: lista
+  });
+
+  if (!r.success) {
+    toastError(r.mensaje);
+    return;
+  }
+  toastSuccess('✓ Alineaciones guardadas');
+}
+
+function conectarTabAlineaciones() {
+  // Los onclick están inline, no hace falta nada extra
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: PARTIDO (cronómetro + acciones)
+// ═══════════════════════════════════════════════════════════════
+
+function renderTabPartido(info) {
+  const goles = datosPartido.goles || [];
+  const tarjetas = datosPartido.tarjetas || [];
+
+  let btnsTiempo = '';
+  for (let i = 1; i <= info.tiempos; i++) {
+    btnsTiempo += `<button class="btn-crono tiempo ${crono.tiempo === i ? 'activo' : ''}" onclick="cambiarTiempo(${i})">${ordinal(i)}T</button>`;
+  }
+  btnsTiempo += `<button class="btn-crono tiempo ${crono.tiempo === 'F' ? 'activo' : ''}" onclick="cambiarTiempo('F')">FIN</button>`;
+
+  // Eventos
+  const eventos = [];
+  goles.forEach(g => eventos.push({ tipo: 'GOL', minuto: g.minuto, tiempo: g.tiempo, jugador: g.jugador_nombre, equipo: g.id_equipo }));
+  tarjetas.forEach(t => eventos.push({ tipo: t.tipo, minuto: t.minuto, tiempo: t.tiempo, jugador: t.jugador_nombre, equipo: t.id_equipo }));
+  eventos.sort((a, b) => {
+    if (a.tiempo !== b.tiempo) return Number(b.tiempo) - Number(a.tiempo);
+    return Number(b.minuto) - Number(a.minuto);
+  });
+
+  let eventosHTML = eventos.length === 0
+    ? '<p style="text-align:center;color:var(--gris);font-size:13px;padding:10px;">Sin eventos todavía</p>'
+    : eventos.map(e => {
+        const icono = e.tipo === 'GOL' ? '⚽'
+                    : e.tipo === 'AMARILLA' ? '🟨'
+                    : e.tipo === 'AMARILLA_DOBLE' ? '🟨🟨'
+                    : e.tipo === 'ROJA_DIRECTA' ? '🟥'
+                    : '•';
+        const esLocal = e.equipo === partidoActual.id_equipo_local;
+        const nombreEquipo = esLocal ? partidoActual.nombre_local : partidoActual.nombre_visitante;
+        return `
+          <div class="evento-item">
+            <span class="evento-minuto">${e.minuto}'</span>
+            <span class="evento-icono">${icono}</span>
+            <div class="evento-desc">
+              <strong>${escapeHtml(e.jugador || '?')}</strong>
+              <small>${escapeHtml(nombreEquipo)}</small>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+  return `
+    <!-- CRONÓMETRO -->
+    <div class="crono-card">
+      <div class="crono-tiempo">Tiempo de juego</div>
+      <div class="crono-display" id="cronoDisplay">${formatearMinSeg(crono.segundos)}</div>
+      <div class="crono-controles">
+        <button class="btn-crono" id="btnPlay" onclick="toggleCronometro()">${crono.corriendo ? '⏸ PAUSA' : '▶ INICIAR'}</button>
+        <button class="btn-crono secundario" onclick="resetearCronometro()">🔄</button>
+      </div>
+      <div class="crono-controles" style="margin-top:10px;">
+        ${btnsTiempo}
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="acciones-grid">
+      <button class="btn-accion btn-accion-gol" onclick="agregarGol('LOCAL')">
+        <span class="btn-accion-icono">⚽</span>
+        <span class="btn-accion-texto">+1 GOL</span>
+        <div class="btn-accion-equipo">${escapeHtml(partidoActual.nombre_local)}</div>
+      </button>
+      <button class="btn-accion btn-accion-gol" onclick="agregarGol('VISITANTE')">
+        <span class="btn-accion-icono">⚽</span>
+        <span class="btn-accion-texto">+1 GOL</span>
+        <div class="btn-accion-equipo">${escapeHtml(partidoActual.nombre_visitante)}</div>
+      </button>
+      <button class="btn-accion btn-accion-amarilla" onclick="abrirTarjeta('AMARILLA')">
+        <span class="btn-accion-icono">🟨</span>
+        <span class="btn-accion-texto">AMARILLA</span>
+      </button>
+      <button class="btn-accion btn-accion-roja" onclick="abrirTarjeta('ROJA_DIRECTA')">
+        <span class="btn-accion-icono">🟥</span>
+        <span class="btn-accion-texto">ROJA</span>
+      </button>
+    </div>
+
+    ${!info.usaTarjetas ? '<div class="alerta-no-permite">⚠️ Esta categoría no usa tarjetas. Si tocás los botones de tarjeta, aparecerá un aviso.</div>' : ''}
+
+    <div class="eventos-card">
+      <div class="eventos-titulo">Eventos del partido</div>
+      <div id="listaEventos">${eventosHTML}</div>
+    </div>
+  `;
+}
+
+function conectarTabPartido() {
+  if (crono.corriendo) iniciarTickCrono();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: COMPORTAMIENTO
+// ═══════════════════════════════════════════════════════════════
+
+function renderTabComportamiento(info) {
+  let html = '';
+
+  // Puntos protocolo + actitud solo si la categoría los usa
+  if (info.ptsProtocoloMax > 0 || info.ptsActitudMax > 0) {
+    html += `
+      <div class="comp-card">
+        <h4>📊 Puntos de evaluación pedagógica</h4>
+        <p style="font-size:12px;color:var(--gris);margin-bottom:14px;">
+          Aplicable solo a esta categoría (${escapeHtml(info.modalidad)}). Los valores se suman a los puntos del juego en la tabla de posiciones.
+        </p>
+
+        ${info.ptsProtocoloMax > 0 ? renderPuntos('protocolo', info.ptsProtocoloMax) : ''}
+        ${info.ptsActitudMax > 0 ? renderPuntos('actitud', info.ptsActitudMax) : ''}
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="comp-card">
+        <h4>📊 Puntos pedagógicos</h4>
+        <p style="font-size:13px;color:var(--gris);">
+          Esta categoría (${escapeHtml(info.modalidad)}) no usa puntos de protocolo/actitud.
+        </p>
+      </div>
+    `;
+  }
+
+  // Comportamiento BUENO/REGULAR/MALO (siempre)
+  html += `
+    <div class="comp-card">
+      <h4>🌟 Evaluación de comportamiento</h4>
+      <p style="font-size:12px;color:var(--gris);margin-bottom:14px;">
+        Evaluación cualitativa del comportamiento durante el partido.
+      </p>
+
+      <div class="comp-eval-grupo">
+        <p style="font-family:'Nunito';font-weight:800;font-size:13px;margin-bottom:6px;color:var(--rojo);">${escapeHtml(partidoActual.nombre_local)} (Local)</p>
+        ${renderEvalRow('local_club', '👥 Público / Acompañantes')}
+        ${renderEvalRow('local_ct', '👔 Cuerpo técnico')}
+        ${renderEvalRow('local_jug', '⚽ Jugadores')}
+      </div>
+
+      <div class="comp-eval-grupo">
+        <p style="font-family:'Nunito';font-weight:800;font-size:13px;margin-bottom:6px;color:var(--rojo);">${escapeHtml(partidoActual.nombre_visitante)} (Visitante)</p>
+        ${renderEvalRow('visit_club', '👥 Público / Acompañantes')}
+        ${renderEvalRow('visit_ct', '👔 Cuerpo técnico')}
+        ${renderEvalRow('visit_jug', '⚽ Jugadores')}
+      </div>
+
+      <p style="font-size:11px;color:var(--gris);margin-top:6px;">
+        💡 B = Bueno · R = Regular · M = Malo
+      </p>
+    </div>
+  `;
+
+  return html;
+}
+
+function renderPuntos(tipo, max) {
+  // tipo = 'protocolo' o 'actitud'
+  const valorLocal = comportamiento['pts_' + (tipo === 'protocolo' ? 'prot' : 'act') + '_local'];
+  const valorVisit = comportamiento['pts_' + (tipo === 'protocolo' ? 'prot' : 'act') + '_visit'];
+
+  function botones(equipo, valor) {
+    let html = '<div class="puntos-grupo">';
+    for (let i = 0; i <= max; i++) {
+      html += `<button class="puntos-btn ${i === valor ? 'activo' : ''}" onclick="setPunto('${tipo}','${equipo}',${i})">${i}</button>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  return `
+    <div class="puntos-row">
+      <div class="puntos-equipo">
+        <div class="puntos-tipo">${tipo === 'protocolo' ? 'Protocolo' : 'Actitud'}</div>
+        <div class="puntos-equipo-nombre">${escapeHtml(partidoActual.nombre_local)}</div>
+        ${botones('local', valorLocal)}
+      </div>
+      <div class="puntos-equipo">
+        <div class="puntos-tipo">${tipo === 'protocolo' ? 'Protocolo' : 'Actitud'}</div>
+        <div class="puntos-equipo-nombre">${escapeHtml(partidoActual.nombre_visitante)}</div>
+        ${botones('visit', valorVisit)}
+      </div>
+    </div>
+  `;
+}
+
+function setPunto(tipo, equipo, valor) {
+  const key = 'pts_' + (tipo === 'protocolo' ? 'prot' : 'act') + '_' + equipo;
+  comportamiento[key] = valor;
+  renderVistaPartido();
+}
+
+function renderEvalRow(campo, label) {
+  const key = 'comp_' + campo;
+  const v = comportamiento[key] || '';
+  return `
+    <div class="comp-eval-row">
+      <span class="comp-eval-label">${label}</span>
+      <button class="comp-eval-btn ${v === 'B' ? 'activo-B' : ''}" onclick="setEval('${campo}','B')">B</button>
+      <button class="comp-eval-btn ${v === 'R' ? 'activo-R' : ''}" onclick="setEval('${campo}','R')">R</button>
+      <button class="comp-eval-btn ${v === 'M' ? 'activo-M' : ''}" onclick="setEval('${campo}','M')">M</button>
+    </div>
+  `;
+}
+
+function setEval(campo, valor) {
+  const key = 'comp_' + campo;
+  comportamiento[key] = valor;
+  renderVistaPartido();
+}
+
+function conectarTabComportamiento() {
+  // Eventos inline
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAB: FINALIZAR
+// ═══════════════════════════════════════════════════════════════
+
+function renderTabFinalizar(info) {
+  const p = partidoActual;
+  return `
+    <div class="comp-card">
+      <h4>📝 Resumen del partido</h4>
+      <div class="resumen-final">
+        <div class="resumen-final-equipos">${escapeHtml(p.nombre_local)}</div>
+        <div class="resumen-final-marcador">${p.gol_local || 0} – ${p.gol_visitante || 0}</div>
+        <div class="resumen-final-equipos">${escapeHtml(p.nombre_visitante)}</div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label class="form-label">📷 Foto de la planilla física</label>
+        <div style="border:2px dashed var(--gris-cl);border-radius:12px;padding:16px;text-align:center;cursor:pointer;position:relative;">
+          <div style="font-size:28px;opacity:0.5;">📷</div>
+          <div style="font-weight:700;font-size:13px;" id="fileLabelFinal">${p.foto_planilla_url ? '✓ Ya hay foto subida (toca para reemplazar)' : 'Tocar para tomar foto'}</div>
+          <input type="file" id="fotoFinal" accept="image/*" capture="environment" style="position:absolute;opacity:0;inset:0;cursor:pointer;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label class="form-label">% jugado</label>
+        <input type="number" id="pctJugado" class="form-input" value="${p.pct_jugado || 100}" min="0" max="100">
+        <div style="font-size:11px;color:var(--gris);margin-top:4px;">Si se suspendió antes del 70%, ponelo aquí (Art. 29).</div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label class="form-label">Observaciones</label>
+        <textarea id="obsFinal" class="form-textarea" rows="2" placeholder="Algún detalle importante..."></textarea>
+      </div>
+
+      <button class="btn-finalizar" onclick="confirmarFinalizar()">✓ FINALIZAR PARTIDO</button>
+    </div>
+  `;
+}
+
+function conectarTabFinalizar() {
+  const inp = document.getElementById('fotoFinal');
+  if (inp) {
+    inp.addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (f) document.getElementById('fileLabelFinal').textContent = '📷 ' + f.name;
+    });
+  }
+}
+
+async function confirmarFinalizar() {
+  const ok = await confirmar(`¿Finalizar partido con marcador ${partidoActual.gol_local || 0}-${partidoActual.gol_visitante || 0}?`,
+    { titulo: 'Finalizar partido', txtSi: 'Sí, finalizar', peligroso: false });
+  if (!ok) return;
+
+  pausarCronometro();
+
+  try {
+    const pctJ = document.getElementById('pctJugado').value;
+    const obsTxt = document.getElementById('obsFinal').value.trim();
+
+    // Armar observaciones estructuradas con comportamiento
+    const compStr = `COMP_LOCAL:club=${comportamiento.comp_local_club || ''},ct=${comportamiento.comp_local_ct || ''},jug=${comportamiento.comp_local_jug || ''}|COMP_VISIT:club=${comportamiento.comp_visit_club || ''},ct=${comportamiento.comp_visit_ct || ''},jug=${comportamiento.comp_visit_jug || ''}`;
+    const obsFinal = (obsTxt ? obsTxt + ' || ' : '') + compStr;
+
+    const params = {
+      id_partido: partidoActual.id,
+      pct_jugado: pctJ,
+      observaciones: obsFinal,
+      finalizar: true,
+      gol_local: partidoActual.gol_local || 0,
+      gol_visitante: partidoActual.gol_visitante || 0,
+      pts_prot_local: comportamiento.pts_prot_local,
+      pts_act_local: comportamiento.pts_act_local,
+      pts_prot_visit: comportamiento.pts_prot_visit,
+      pts_act_visit: comportamiento.pts_act_visit
+    };
+
+    const fotoInput = document.getElementById('fotoFinal');
+    if (fotoInput && fotoInput.files.length > 0) {
+      const fotoData = await leerArchivoBase64(fotoInput);
+      if (fotoData) {
+        params.foto_planilla_base64 = fotoData.base64;
+        params.foto_planilla_extension = fotoData.extension;
+      }
+    }
+
+    const r = await apiCall('registrarResultado', params);
+
+    if (!r.success) {
+      toastError(r.mensaje);
+      return;
+    }
+
+    toastSuccess('✓ Partido finalizado');
+    localStorage.removeItem(getCronoKey());
+    setTimeout(() => volverALista(), 500);
+  } catch (e) {
+    toastError('Error: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CRONÓMETRO
+// ═══════════════════════════════════════════════════════════════
+
+function getCronoKey() {
+  return 'bbb_crono_' + (partidoActual ? partidoActual.id : '');
+}
+
+function inicializarCronometro() {
+  const key = getCronoKey();
+  const guardado = localStorage.getItem(key);
+  if (guardado) {
+    crono = JSON.parse(guardado);
+    if (crono.corriendo && crono.startTimestamp) {
+      const transcurrido = Math.floor((Date.now() - crono.startTimestamp) / 1000);
+      crono.segundos = crono.segundosBase + transcurrido;
+    }
+  } else {
+    crono = { segundos: 0, segundosBase: 0, corriendo: false, startTimestamp: null, tiempo: 1 };
+  }
+}
+
+let intervalCrono = null;
+
+function iniciarTickCrono() {
+  if (intervalCrono) clearInterval(intervalCrono);
+  intervalCrono = setInterval(() => {
+    if (crono.corriendo && crono.startTimestamp) {
+      const transcurrido = Math.floor((Date.now() - crono.startTimestamp) / 1000);
+      crono.segundos = crono.segundosBase + transcurrido;
+      const display = document.getElementById('cronoDisplay');
+      if (display) display.textContent = formatearMinSeg(crono.segundos);
+    }
+  }, 1000);
+}
+
+function pararTickCrono() {
+  if (intervalCrono) { clearInterval(intervalCrono); intervalCrono = null; }
+}
+
+function toggleCronometro() {
+  if (crono.corriendo) pausarCronometro();
+  else iniciarCronometro();
+}
+
+function iniciarCronometro() {
+  crono.corriendo = true;
+  crono.startTimestamp = Date.now();
+  crono.segundosBase = crono.segundos;
+  guardarCrono();
+  iniciarTickCrono();
+  const btn = document.getElementById('btnPlay');
+  if (btn) btn.textContent = '⏸ PAUSA';
+  if (partidoActual.estado === 'PROGRAMADO') marcarEnCurso();
+}
+
+function pausarCronometro() {
+  if (crono.corriendo) {
+    const transcurrido = Math.floor((Date.now() - crono.startTimestamp) / 1000);
+    crono.segundos = crono.segundosBase + transcurrido;
+  }
+  crono.corriendo = false;
+  crono.startTimestamp = null;
+  crono.segundosBase = crono.segundos;
+  guardarCrono();
+  pararTickCrono();
+  const btn = document.getElementById('btnPlay');
+  if (btn) btn.textContent = '▶ INICIAR';
+}
+
+async function resetearCronometro() {
+  const ok = await confirmar('¿Resetear el cronómetro a 00:00?', { txtSi: 'Sí, resetear', peligroso: false });
+  if (!ok) return;
+  pausarCronometro();
+  crono.segundos = 0;
+  crono.segundosBase = 0;
+  guardarCrono();
+  const display = document.getElementById('cronoDisplay');
+  if (display) display.textContent = formatearMinSeg(0);
+}
+
+function cambiarTiempo(t) {
+  crono.tiempo = t;
+  guardarCrono();
+  if (t !== 'F') {
+    pausarCronometro();
+    crono.segundos = 0;
+    crono.segundosBase = 0;
+    guardarCrono();
+  }
+  renderVistaPartido();
+}
+
+function guardarCrono() {
+  localStorage.setItem(getCronoKey(), JSON.stringify(crono));
+}
+
+function formatearMinSeg(seg) {
+  const m = Math.floor(seg / 60);
+  const s = seg % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function minutoActual() {
+  return Math.floor(crono.segundos / 60) + 1;
+}
+
+async function marcarEnCurso() {
+  const r = await apiCall('actualizarMarcador', {
+    id_partido: partidoActual.id,
+    gol_local: partidoActual.gol_local || 0,
+    gol_visitante: partidoActual.gol_visitante || 0
+  });
+  if (r.success) partidoActual.estado = 'EN_CURSO';
+}
+
+function ordinal(n) {
+  return n === 1 ? '1°' : n === 2 ? '2°' : n === 3 ? '3°' : n + '°';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GOLES
+// ═══════════════════════════════════════════════════════════════
+
+async function agregarGol(equipo) {
+  const idEquipo = equipo === 'LOCAL' ? partidoActual.id_equipo_local : partidoActual.id_equipo_visitante;
+  const jugadores = equipo === 'LOCAL' ? jugadoresLocal : jugadoresVisit;
+
+  if (jugadores.length === 0) {
+    if (!confirm('Este equipo no tiene jugadores cargados. ¿Continuar sin asociar a jugador?')) return;
+    return registrarGolSinJugador(equipo, idEquipo);
+  }
+
+  const minutoAuto = minutoActual();
+  const tiempoAct = crono.tiempo === 'F' ? 1 : crono.tiempo;
+
+  showModal('Gol de ' + (equipo === 'LOCAL' ? partidoActual.nombre_local : partidoActual.nombre_visitante), `
+    <p style="font-size:13px;color:var(--gris);margin-bottom:10px;">¿Quién goleó?</p>
+    <div class="modal-jugador-grid" id="gridJugadores">
+      ${jugadores.map(j => `
+        <div class="jugador-card-modal" data-id="${j.id}" data-nombre="${escapeHtml(j.nombres + ' ' + j.apellidos)}" onclick="seleccionarJugadorGol(this)">
+          <div class="jugador-card-num">${j.numero_camiseta || '?'}</div>
+          <div class="jugador-card-nombre">${escapeHtml(j.apellidos || j.nombres)}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="margin-top:18px;">
+      <label class="form-label">Minuto (cronómetro: ${minutoAuto}')</label>
+      <input type="number" id="goleMinuto" class="input-minuto" value="${minutoAuto}" min="1" max="120">
+    </div>
+
+    <div style="margin-top:10px;">
+      <label class="form-label">Tipo</label>
+      <select id="goleTipo" class="form-select">
+        <option value="NORMAL">Normal</option>
+        <option value="PENAL">De penal</option>
+        <option value="AUTOGOL">Autogol</option>
+      </select>
+    </div>
+
+    <input type="hidden" id="goleIdJugador" value="">
+
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button class="btn btn-secundario" style="flex:1;" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primario" style="flex:1;" id="btnGuardarGol" disabled onclick="confirmarGol('${equipo}', '${idEquipo}', ${tiempoAct})">Guardar gol</button>
+    </div>
+  `);
+}
+
+function seleccionarJugadorGol(card) {
+  document.querySelectorAll('#gridJugadores .jugador-card-modal').forEach(c => c.classList.remove('seleccionado'));
+  card.classList.add('seleccionado');
+  document.getElementById('goleIdJugador').value = card.dataset.id;
+  document.getElementById('btnGuardarGol').disabled = false;
+}
+
+async function confirmarGol(equipo, idEquipo, tiempo) {
+  const idJugador = document.getElementById('goleIdJugador').value;
+  const minuto = parseInt(document.getElementById('goleMinuto').value);
+  const tipo = document.getElementById('goleTipo').value;
+  if (!idJugador) { toastWarning('Seleccioná al jugador'); return; }
+
+  const r = await apiCall('registrarGol', {
+    id_partido: partidoActual.id,
+    id_equipo: idEquipo,
+    id_jugador: idJugador,
+    minuto: minuto,
+    tiempo: tiempo,
+    tipo: tipo
+  });
+
+  if (!r.success) { toastError(r.mensaje); return; }
+  toastSuccess('⚽ ¡Gol!');
+  closeModal();
+  await recargarPartido();
+}
+
+async function registrarGolSinJugador(equipo, idEquipo) {
+  const minuto = prompt('Minuto del gol:', minutoActual());
+  if (!minuto) return;
+  const tiempo = crono.tiempo === 'F' ? 1 : crono.tiempo;
+
+  const r = await apiCall('registrarGol', {
+    id_partido: partidoActual.id,
+    id_equipo: idEquipo,
+    id_jugador: '',
+    minuto: parseInt(minuto),
+    tiempo: tiempo,
+    tipo: 'NORMAL'
+  });
+
+  if (!r.success) { toastError(r.mensaje); return; }
+  toastSuccess('⚽ ¡Gol!');
+  await recargarPartido();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TARJETAS
+// ═══════════════════════════════════════════════════════════════
+
+async function abrirTarjeta(tipo) {
+  const cat = datosPartido.categoria || {};
+  const info = infoCategoria(cat);
+
+  // Aviso si la categoría no usa tarjetas
+  if (!info.usaTarjetas) {
+    toastWarning('⚠️ Esta categoría (' + (cat.nombre || cat.id) + ') no usa tarjetas según reglamento.');
+    return;
+  }
+
+  const tipoLabel = tipo === 'AMARILLA' ? '🟨 Tarjeta amarilla' : '🟥 Tarjeta roja';
+
+  showModal(tipoLabel, `
+    <p style="font-size:13px;color:var(--gris);margin-bottom:10px;">¿De qué equipo?</p>
+    <div class="selector-equipo">
+      <button class="selector-equipo-btn" onclick="seleccionarEquipoTarjeta(this, '${partidoActual.id_equipo_local}', '${tipo}')">
+        ${escapeHtml(partidoActual.nombre_local)}
+      </button>
+      <button class="selector-equipo-btn" onclick="seleccionarEquipoTarjeta(this, '${partidoActual.id_equipo_visitante}', '${tipo}')">
+        ${escapeHtml(partidoActual.nombre_visitante)}
+      </button>
+    </div>
+    <div id="contJugadoresTarjeta"></div>
+  `);
+}
+
+async function seleccionarEquipoTarjeta(btn, idEquipo, tipo) {
+  document.querySelectorAll('.selector-equipo-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+
+  const jugadores = idEquipo === partidoActual.id_equipo_local ? jugadoresLocal : jugadoresVisit;
+  const minutoAuto = minutoActual();
+  const tiempoAct = crono.tiempo === 'F' ? 1 : crono.tiempo;
+
+  document.getElementById('contJugadoresTarjeta').innerHTML = `
+    <p style="font-size:13px;color:var(--gris);margin-bottom:10px;margin-top:14px;">¿A qué jugador?</p>
+    <div class="modal-jugador-grid" id="gridTarjeta">
+      ${jugadores.map(j => `
+        <div class="jugador-card-modal" data-id="${j.id}" onclick="seleccionarJugadorTarjeta(this)">
+          <div class="jugador-card-num">${j.numero_camiseta || '?'}</div>
+          <div class="jugador-card-nombre">${escapeHtml(j.apellidos || j.nombres)}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="margin-top:18px;">
+      <label class="form-label">Minuto (cronómetro: ${minutoAuto}')</label>
+      <input type="number" id="tarjMinuto" class="input-minuto" value="${minutoAuto}" min="1" max="120">
+    </div>
+
+    ${tipo === 'AMARILLA' ? `
+      <div style="margin-top:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;cursor:pointer;">
+          <input type="checkbox" id="tarjDoble">
+          Es segunda amarilla (doble = roja)
+        </label>
+      </div>
+    ` : ''}
+
+    <input type="hidden" id="tarjIdJugador" value="">
+
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      <button class="btn btn-secundario" style="flex:1;" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primario" style="flex:1;" id="btnGuardarTarj" disabled onclick="confirmarTarjeta('${idEquipo}', '${tipo}', ${tiempoAct})">Guardar</button>
+    </div>
+  `;
+}
+
+function seleccionarJugadorTarjeta(card) {
+  document.querySelectorAll('#gridTarjeta .jugador-card-modal').forEach(c => c.classList.remove('seleccionado'));
+  card.classList.add('seleccionado');
+  document.getElementById('tarjIdJugador').value = card.dataset.id;
+  document.getElementById('btnGuardarTarj').disabled = false;
+}
+
+async function confirmarTarjeta(idEquipo, tipoBase, tiempo) {
+  const idJugador = document.getElementById('tarjIdJugador').value;
+  const minuto = parseInt(document.getElementById('tarjMinuto').value);
+  if (!idJugador) { toastWarning('Seleccioná al jugador'); return; }
+
+  let tipoFinal = tipoBase;
+  const dobleCheck = document.getElementById('tarjDoble');
+  if (dobleCheck && dobleCheck.checked) tipoFinal = 'AMARILLA_DOBLE';
+
+  const r = await apiCall('registrarTarjeta', {
+    id_partido: partidoActual.id,
+    id_jugador: idJugador,
+    tipo: tipoFinal,
+    minuto: minuto,
+    tiempo: tiempo
+  });
+
+  if (!r.success) { toastError(r.mensaje); return; }
+  toastSuccess(tipoFinal.includes('ROJA') || tipoFinal === 'AMARILLA_DOBLE' ? '🟥 Roja' : '🟨 Amarilla');
+  closeModal();
+  await recargarPartido();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RECARGAR PARTIDO
+// ═══════════════════════════════════════════════════════════════
+
+async function recargarPartido() {
+  const r = await apiCall('obtenerPartido', { id: partidoActual.id });
+  if (!r.success) return;
+
+  partidoActual = r.data.partido;
+  datosPartido = r.data;
+
+  const golLocal = document.getElementById('golLocal');
+  const golVisit = document.getElementById('golVisit');
+  if (golLocal) golLocal.textContent = partidoActual.gol_local || 0;
+  if (golVisit) golVisit.textContent = partidoActual.gol_visitante || 0;
+
+  // Re-render solo si estamos en tab partido (para no perder estado de otras tabs)
+  if (tabActual === 'partido') {
+    renderVistaPartido();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REGLAS / WELCOME MODAL
+// ═══════════════════════════════════════════════════════════════
+
+function mostrarReglas(esWelcome) {
+  const cat = datosPartido.categoria || {};
+  const info = infoCategoria(cat);
+  const tipsInfo = generarTipsCategoria(partidoActual.categoria, cat);
+  const titulo = esWelcome ? `🎯 Reglas de ${tipsInfo.nombre}` : `📖 Reglas de ${tipsInfo.nombre}`;
+
+  let reglasHTML = `
+    <div class="welcome-banner">
+      <h4>${escapeHtml(tipsInfo.nombre)} · ${escapeHtml(tipsInfo.modalidad)}</h4>
+      <div style="font-size:13px;">Reglamento Copa Bon Bon Bum 2026</div>
+    </div>
+
+    <div class="welcome-reglas">
+      <div class="welcome-regla">
+        <div class="welcome-regla-icon">⏱️</div>
+        <div><strong>Duración:</strong> ${info.tiempos} tiempos × ${info.minPorTiempo} minutos</div>
+      </div>
+      <div class="welcome-regla">
+        <div class="welcome-regla-icon">${info.usaTarjetas ? '🟨' : '🚫'}</div>
+        <div><strong>Tarjetas:</strong> ${info.usaTarjetas ? 'Sí, amarillas y rojas' : 'NO se aplican (Art. 26)'}</div>
+      </div>
+      <div class="welcome-regla">
+        <div class="welcome-regla-icon">🏆</div>
+        <div><strong>Campeón:</strong> ${info.tieneCampeon ? 'Sí, hay fase eliminatoria' : 'No, solo se evalúa pedagógicamente'}</div>
+      </div>
+      ${info.ptsProtocoloMax > 0 ? `
+        <div class="welcome-regla">
+          <div class="welcome-regla-icon">📊</div>
+          <div><strong>Protocolo:</strong> Hasta ${info.ptsProtocoloMax} puntos</div>
+        </div>
+      ` : ''}
+      ${info.ptsActitudMax > 0 ? `
+        <div class="welcome-regla">
+          <div class="welcome-regla-icon">🤝</div>
+          <div><strong>Actitud:</strong> Hasta ${info.ptsActitudMax} puntos</div>
+        </div>
+      ` : ''}
+      ${info.modalidad === 'FESTIVAL' || info.modalidad === 'FESTIVAL_PRE' ? `
+        <div class="welcome-regla">
+          <div class="welcome-regla-icon">🔄</div>
+          <div><strong>Rotación:</strong> Cada jugador debe jugar mínimo 1 tiempo</div>
+        </div>
+      ` : ''}
+      <div class="welcome-regla">
+        <div class="welcome-regla-icon">👥</div>
+        <div><strong>Plantilla:</strong> ${info.minJugadores}-${info.maxJugadores} jugadores${info.maxNinasEnPlanilla > 0 ? `, máximo ${info.maxNinasEnPlanilla} niñas` : ''}</div>
+      </div>
+    </div>
+
+    <div style="background:var(--gris-bg);padding:12px;border-radius:10px;margin-top:14px;font-size:12px;">
+      <strong>🎯 Flujo recomendado:</strong>
+      <ol style="margin:6px 0 0 20px;padding:0;">
+        <li><strong>Alineaciones</strong>: marcá quiénes juegan cada tiempo</li>
+        <li><strong>Partido</strong>: cronómetro + goles + tarjetas en vivo</li>
+        <li><strong>Comportamiento</strong>: puntos protocolo/actitud y evaluación</li>
+        <li><strong>Finalizar</strong>: foto de planilla y cerrar partido</li>
+      </ol>
+    </div>
+
+    <button class="btn btn-primario btn-block" style="margin-top:16px;width:100%;" onclick="closeModal()">${esWelcome ? '¡Entendido, vamos!' : 'Cerrar'}</button>
+  `;
+
+  showModal(titulo, reglasHTML);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════════════════════════════
+
+async function cerrarSesion() {
+  const ok = await confirmar('¿Cerrar sesión?', { txtSi: 'Sí, salir', peligroso: false });
+  if (ok) {
+    pararTickCrono();
+    logout();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+
+cargarLista();
+
+window.addEventListener('beforeunload', () => {
+  if (crono) guardarCrono();
+});
+</script>
+
+</body>
+</html>
