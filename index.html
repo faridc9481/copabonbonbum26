@@ -851,14 +851,111 @@
     font-weight: 600;
   }
 
+  /* MENÚ HAMBURGUESA - solo visible en mobile */
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .menu-toggle:hover { background: var(--gris-bg); }
+  .menu-toggle-icon {
+    display: block;
+    width: 24px;
+    height: 18px;
+    position: relative;
+  }
+  .menu-toggle-icon span {
+    display: block;
+    position: absolute;
+    height: 3px;
+    width: 100%;
+    background: var(--texto);
+    border-radius: 2px;
+    left: 0;
+    transition: all 0.25s;
+  }
+  .menu-toggle-icon span:nth-child(1) { top: 0; }
+  .menu-toggle-icon span:nth-child(2) { top: 7px; }
+  .menu-toggle-icon span:nth-child(3) { top: 14px; }
+  .menu-toggle.activo .menu-toggle-icon span:nth-child(1) {
+    top: 7px; transform: rotate(45deg);
+  }
+  .menu-toggle.activo .menu-toggle-icon span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.activo .menu-toggle-icon span:nth-child(3) {
+    top: 7px; transform: rotate(-45deg);
+  }
+
+  /* Overlay del menú mobile */
+  .menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+  .menu-overlay.activo { display: block; }
+
   @media (max-width: 768px) {
     .hero-inner { grid-template-columns: 1fr; }
-    nav.main-nav { display: none; }
     .foot-content { grid-template-columns: 1fr; }
-    header.main { padding: 14px 20px; }
+    header.main { padding: 14px 20px; flex-wrap: nowrap; }
     .pat-principal-box { padding: 24px 32px; }
     .pat-principal-logo { font-size: 28px; }
     .seccion-head h2 { font-size: 26px; }
+
+    .brand { flex: 1; min-width: 0; }
+    .brand-text { font-size: 16px; overflow: hidden; text-overflow: ellipsis; }
+    .brand-text small { font-size: 10px; }
+
+    /* Mostrar el botón hamburguesa */
+    .menu-toggle { display: block; }
+
+    /* Convertir nav en drawer lateral */
+    nav.main-nav {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 280px;
+      height: 100vh;
+      background: var(--blanco);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+      z-index: 100;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      padding: 80px 0 20px;
+    }
+    nav.main-nav.activo { right: 0; }
+    nav.main-nav ul {
+      flex-direction: column;
+      gap: 0;
+      padding: 0 16px;
+    }
+    nav.main-nav li {
+      width: 100%;
+      border-bottom: 1px solid var(--gris-cl);
+    }
+    nav.main-nav a {
+      display: block;
+      padding: 16px 20px;
+      font-size: 16px;
+      border-radius: 0;
+    }
+    nav.main-nav a.active {
+      color: var(--rojo);
+      background: rgba(227,6,19,0.06);
+    }
+
+    /* Botón de login en móvil */
+    .btn-login {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
   }
 </style>
 </head>
@@ -885,7 +982,7 @@
         <small id="edicionTexto">Cargando...</small>
       </div>
     </div>
-    <nav class="main-nav">
+    <nav class="main-nav" id="mainNav">
       <ul>
         <li><a data-route="inicio" class="active">Inicio</a></li>
         <li><a data-route="programacion">Partidos</a></li>
@@ -895,7 +992,15 @@
       </ul>
     </nav>
     <a class="btn-login" data-route="login">Iniciar sesión</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menú">
+      <span class="menu-toggle-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
   </header>
+  <div class="menu-overlay" id="menuOverlay"></div>
 
   <!-- VISTAS -->
   <main id="app">
@@ -1897,10 +2002,51 @@ function mostrarError(msg) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// MENÚ HAMBURGUESA MOBILE
+// ═══════════════════════════════════════════════════════════════
+
+function setupMenuMobile() {
+  const toggle = document.getElementById('menuToggle');
+  const nav = document.getElementById('mainNav');
+  const overlay = document.getElementById('menuOverlay');
+
+  function abrirMenu() {
+    toggle.classList.add('activo');
+    nav.classList.add('activo');
+    overlay.classList.add('activo');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function cerrarMenu() {
+    toggle.classList.remove('activo');
+    nav.classList.remove('activo');
+    overlay.classList.remove('activo');
+    document.body.style.overflow = '';
+  }
+
+  toggle.addEventListener('click', () => {
+    if (nav.classList.contains('activo')) cerrarMenu();
+    else abrirMenu();
+  });
+
+  overlay.addEventListener('click', cerrarMenu);
+
+  // Cerrar el menú al hacer click en cualquier link del nav
+  nav.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', cerrarMenu);
+  });
+
+  // Cerrar también al clickear el botón de login (que tiene data-route)
+  const btnLogin = document.querySelector('.btn-login');
+  if (btnLogin) btnLogin.addEventListener('click', cerrarMenu);
+}
+
+// ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 
 setupRouting();
+setupMenuMobile();
 navegarA('inicio');
 
 </script>
