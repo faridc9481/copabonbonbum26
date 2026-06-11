@@ -285,9 +285,18 @@ function renderForm(ct) {
         </div>
       </div>
 
-      <div class="form-grupo">
-        <label class="form-label">Email</label>
-        <input type="email" id="email" class="form-input" value="${ct ? escapeHtml(ct.email || '') : ''}">
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">Email</label>
+          <input type="email" id="email" class="form-input" value="${ct ? escapeHtml(ct.email || '') : ''}">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Tipo de sangre (RH)</label>
+          <select id="tipo_sangre" class="form-select">
+            <option value="">—</option>
+            ${['O+','O-','A+','A-','B+','B-','AB+','AB-'].map(rh => `<option value="${rh}" ${ct && ct.tipo_sangre === rh ? 'selected' : ''}>${rh}</option>`).join('')}
+          </select>
+        </div>
       </div>
 
       <div class="form-grupo">
@@ -336,7 +345,8 @@ function conectarForm(ct) {
         apellidos: document.getElementById('apellidos').value.trim(),
         documento: document.getElementById('documento').value.trim(),
         telefono: document.getElementById('telefono').value.trim(),
-        email: document.getElementById('email').value.trim()
+        email: document.getElementById('email').value.trim(),
+        tipo_sangre: document.getElementById('tipo_sangre').value
       };
 
       if (certData) {
