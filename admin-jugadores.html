@@ -312,6 +312,7 @@ async function verJugador(id) {
       <tr><td style="padding:6px 0;color:var(--gris);">Posición:</td><td>${escapeHtml(j.posicion || '—')}</td></tr>
       <tr><td style="padding:6px 0;color:var(--gris);">Es arquero:</td><td>${toBool(j.es_arquero) ? 'Sí' : 'No'}</td></tr>
       <tr><td style="padding:6px 0;color:var(--gris);">EPS:</td><td>${escapeHtml(j.eps || '—')}</td></tr>
+      <tr><td style="padding:6px 0;color:var(--gris);">Tipo de sangre:</td><td>${escapeHtml(j.tipo_sangre || '—')}</td></tr>
       ${j.motivo_rechazo ? `<tr><td style="padding:6px 0;color:var(--rojo);">Motivo rechazo:</td><td style="color:var(--rojo);">${escapeHtml(j.motivo_rechazo)}</td></tr>` : ''}
     </table>
     <div class="form-actions">
@@ -429,9 +430,18 @@ function renderForm(jug) {
         </label>
       </div>
 
-      <div class="form-grupo">
-        <label class="form-label">EPS</label>
-        <input type="text" id="eps" class="form-input" value="${jug ? escapeHtml(jug.eps || '') : ''}">
+      <div class="form-row">
+        <div class="form-grupo">
+          <label class="form-label">EPS</label>
+          <input type="text" id="eps" class="form-input" value="${jug ? escapeHtml(jug.eps || '') : ''}">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Tipo de sangre (RH)</label>
+          <select id="tipo_sangre" class="form-select">
+            <option value="">—</option>
+            ${['O+','O-','A+','A-','B+','B-','AB+','AB-'].map(rh => `<option value="${rh}" ${jug && jug.tipo_sangre === rh ? 'selected' : ''}>${rh}</option>`).join('')}
+          </select>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -474,7 +484,8 @@ function conectarForm(jug) {
         numero_camiseta: document.getElementById('numero_camiseta').value || '',
         posicion: document.getElementById('posicion').value,
         es_arquero: document.getElementById('es_arquero').checked,
-        eps: document.getElementById('eps').value.trim()
+        eps: document.getElementById('eps').value.trim(),
+        tipo_sangre: document.getElementById('tipo_sangre').value
       };
 
       if (fotoData) {
