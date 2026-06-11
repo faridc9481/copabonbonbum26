@@ -36,9 +36,7 @@
     print-color-adjust: exact !important;
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-     CONTROLES (visibles solo en pantalla)
-     ═══════════════════════════════════════════════════════════════ */
+  /* CONTROLES */
   .controls {
     position: sticky;
     top: 0;
@@ -53,90 +51,52 @@
     box-shadow: 0 2px 12px rgba(0,0,0,0.2);
     flex-wrap: wrap;
   }
-  .controls-info {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 14px;
-  }
+  .controls-info { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; }
   .controls-info small {
-    display: block;
-    font-weight: 500;
-    font-size: 11px;
-    color: rgba(255,255,255,0.7);
-    margin-top: 2px;
+    display: block; font-weight: 500; font-size: 11px;
+    color: rgba(255,255,255,0.7); margin-top: 2px;
   }
-  .controls-acciones {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
+  .controls-acciones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn-ctrl {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 13px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    padding: 8px 14px; border: none; border-radius: 8px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .btn-ctrl-secundario {
-    background: rgba(255,255,255,0.15);
-    color: var(--blanco);
-  }
+  .btn-ctrl-secundario { background: rgba(255,255,255,0.15); color: var(--blanco); }
   .btn-ctrl-secundario:hover { background: rgba(255,255,255,0.25); }
-  .btn-ctrl-primario {
-    background: var(--rojo);
-    color: var(--blanco);
-  }
+  .btn-ctrl-primario { background: var(--rojo); color: var(--blanco); }
   .btn-ctrl-primario:hover { background: var(--rojo-osc); }
-
   .toggle-todos {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    color: rgba(255,255,255,0.9);
+    display: flex; align-items: center; gap: 6px; font-size: 13px;
+    cursor: pointer; color: rgba(255,255,255,0.9);
   }
   .toggle-todos input { cursor: pointer; }
 
-  /* ═══════════════════════════════════════════════════════════════
-     PÁGINA / IMPRESIÓN
-     ═══════════════════════════════════════════════════════════════ */
+  /* PÁGINA */
   .page-container {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
+    padding: 24px; display: flex; flex-direction: column;
+    align-items: center; gap: 24px;
   }
-
   .page {
     background: var(--blanco);
-    width: 215.9mm;       /* carta */
-    height: 279.4mm;      /* carta */
-    padding: 12mm;
+    width: 215.9mm;
+    height: 279.4mm;
+    padding: 8mm;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
-    gap: 5mm;
+    grid-template-rows: repeat(4, 1fr);
+    gap: 4mm;
     box-shadow: 0 6px 24px rgba(0,0,0,0.12);
     page-break-after: always;
     overflow: hidden;
   }
   .page:last-child { page-break-after: auto; }
 
-  /* ═══════════════════════════════════════════════════════════════
-     CARNET INDIVIDUAL
-     ═══════════════════════════════════════════════════════════════ */
+  /* CARNET (más compacto para 8 por hoja) */
   .carnet {
     border: 1.5px solid var(--gris-cl);
-    border-radius: 4mm;
+    border-radius: 3mm;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -148,200 +108,138 @@
   .carnet-header {
     background: var(--amarillo);
     color: var(--texto);
-    padding: 2mm 3mm;
+    padding: 1.5mm 2.5mm;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1.5px solid var(--texto);
+    border-bottom: 1.2px solid var(--texto);
   }
   .carnet-header-club {
-    display: flex;
-    align-items: center;
-    gap: 2mm;
-    flex: 1;
-    min-width: 0;
+    display: flex; align-items: center; gap: 1.5mm;
+    flex: 1; min-width: 0;
   }
   .carnet-escudo {
-    width: 8mm;
-    height: 8mm;
+    width: 6.5mm; height: 6.5mm;
     background: var(--blanco);
-    border-radius: 1.5mm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 1mm;
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 7pt;
-    color: var(--rojo);
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 6pt; color: var(--rojo);
     flex-shrink: 0;
   }
   .carnet-escudo img { width: 100%; height: 100%; object-fit: cover; }
   .carnet-equipo-nombre {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 8pt;
-    line-height: 1.1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 7.5pt; line-height: 1.1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     flex: 1;
   }
   .carnet-categoria-badge {
-    background: var(--rojo);
-    color: var(--blanco);
-    padding: 1.2mm 2.5mm;
-    border-radius: 3mm;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 8pt;
-    letter-spacing: 0.5pt;
+    background: var(--rojo); color: var(--blanco);
+    padding: 0.8mm 2mm; border-radius: 2.5mm;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 7pt; letter-spacing: 0.3pt;
     flex-shrink: 0;
   }
 
   .carnet-body {
     flex: 1;
-    padding: 3mm;
+    padding: 2.5mm;
     display: flex;
-    gap: 3mm;
+    gap: 2.5mm;
     overflow: hidden;
   }
-
   .carnet-foto {
-    width: 22mm;
-    height: 28mm;
+    width: 18mm; height: 23mm;
     background: var(--gris-bg);
-    border-radius: 2mm;
+    border-radius: 1.5mm;
     border: 1px solid var(--gris-cl);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
   }
   .carnet-foto img { width: 100%; height: 100%; object-fit: cover; }
-  .carnet-foto-placeholder {
-    color: var(--gris);
-    font-size: 20pt;
-  }
+  .carnet-foto-placeholder { color: var(--gris); font-size: 16pt; }
 
   .carnet-datos {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     overflow: hidden;
     min-width: 0;
   }
   .carnet-nombre {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 9.5pt;
-    line-height: 1.15;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 8.5pt; line-height: 1.1;
     color: var(--texto);
-    border-bottom: 1.5px solid var(--rojo);
-    padding-bottom: 1.5mm;
-    margin-bottom: 1.5mm;
+    border-bottom: 1.2px solid var(--rojo);
+    padding-bottom: 1mm; margin-bottom: 1mm;
     word-break: break-word;
   }
   .carnet-dato {
-    font-size: 7.5pt;
-    line-height: 1.4;
+    font-size: 6.8pt; line-height: 1.35;
     color: var(--texto-2);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .carnet-dato strong {
-    color: var(--texto);
-    font-weight: 800;
-    margin-right: 1mm;
-    font-size: 7pt;
-    text-transform: uppercase;
-    letter-spacing: 0.3pt;
+    color: var(--texto); font-weight: 800;
+    margin-right: 0.8mm; font-size: 6.2pt;
+    text-transform: uppercase; letter-spacing: 0.2pt;
+  }
+  .carnet-sangre {
+    display: inline-block;
+    background: var(--rojo); color: var(--blanco);
+    padding: 0.3mm 1.5mm; border-radius: 1mm;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 7pt; margin-left: 1mm;
   }
   .carnet-pos {
-    margin-top: 1.5mm;
-    background: var(--amarillo);
-    color: var(--texto);
-    padding: 1mm 2mm;
-    border-radius: 1.5mm;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 7.5pt;
-    display: inline-block;
-    text-transform: uppercase;
+    margin-top: auto;
+    align-self: flex-start;
+    background: var(--amarillo); color: var(--texto);
+    padding: 0.8mm 2mm; border-radius: 1.2mm;
+    font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 7pt; text-transform: uppercase;
   }
-  .carnet-pos.ct {
-    background: var(--rojo);
-    color: var(--blanco);
-  }
+  .carnet-pos.ct { background: var(--rojo); color: var(--blanco); }
 
   .carnet-dorsal {
     position: absolute;
-    bottom: 3mm;
-    right: 3mm;
-    width: 14mm;
-    height: 14mm;
-    background: var(--rojo);
-    color: var(--blanco);
+    bottom: 6mm; right: 2.5mm;
+    width: 11mm; height: 11mm;
+    background: var(--rojo); color: var(--blanco);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 16pt;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 13pt;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     line-height: 1;
   }
-  .carnet-dorsal.sin {
-    background: var(--gris-cl);
-    color: var(--gris);
-    font-size: 8pt;
-  }
+  .carnet-dorsal.sin { background: var(--gris-cl); color: var(--gris); font-size: 7pt; }
 
   .carnet-footer {
-    background: var(--rojo);
-    color: var(--blanco);
-    padding: 1.5mm 3mm;
-    font-family: 'Nunito', sans-serif;
-    font-size: 6.5pt;
-    text-align: center;
-    font-weight: 700;
-    letter-spacing: 0.5pt;
+    background: var(--rojo); color: var(--blanco);
+    padding: 1mm 2.5mm;
+    font-family: 'Nunito', sans-serif; font-size: 5.5pt;
+    text-align: center; font-weight: 700; letter-spacing: 0.3pt;
   }
 
-  /* Loading / empty */
   .loading, .empty {
-    width: 100%;
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--gris);
+    width: 100%; text-align: center; padding: 60px 20px; color: var(--gris);
   }
   .empty h3 {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    color: var(--texto);
-    margin-bottom: 6px;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    color: var(--texto); margin-bottom: 6px;
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-     IMPRESIÓN
-     ═══════════════════════════════════════════════════════════════ */
-  @page {
-    size: letter portrait;
-    margin: 0;
-  }
+  @page { size: letter portrait; margin: 0; }
 
   @media print {
     body { background: var(--blanco); }
     .controls, .no-print { display: none !important; }
     .page-container { padding: 0; gap: 0; }
-    .page {
-      box-shadow: none;
-      margin: 0;
-    }
-    .carnet { border: 1.5px dashed #999; }
+    .page { box-shadow: none; margin: 0; }
+    .carnet { border: 1.2px dashed #999; }
   }
 </style>
 </head>
@@ -367,9 +265,6 @@
   </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// PARÁMETROS
-// ═══════════════════════════════════════════════════════════════
 const urlParams = new URLSearchParams(window.location.search);
 const idEquipo = urlParams.get('id_equipo');
 
@@ -380,76 +275,73 @@ if (!idEquipo) {
     '<div class="empty"><h3>Falta el ID del equipo</h3><p>Esta página debe abrirse con el parámetro ?id_equipo=...</p></div>';
 }
 
-// Estado
 let equipoActual = null;
-let clubActual = null;
 let categoriaActual = null;
 let jugadoresActuales = [];
 let ctActuales = [];
 
-// ═══════════════════════════════════════════════════════════════
-// CARGA DE DATOS
-// ═══════════════════════════════════════════════════════════════
+// ─── Helper: primer valor no vacío entre varias claves posibles ───
+function pick(obj, claves, def) {
+  if (!obj) return def !== undefined ? def : '';
+  for (const k of claves) {
+    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
+      return obj[k];
+    }
+  }
+  return def !== undefined ? def : '';
+}
 
 async function cargar() {
-  // Cargar en paralelo: equipo, jugadores, cuerpo técnico, categorías
-  const [rEq, rJug, rCT, rCats] = await Promise.all([
-    apiCall('obtenerEquipo', { id: idEquipo }),
-    apiCall('listarJugadores', { id_equipo: idEquipo }),
-    apiCall('listarCuerpoTecnico', { id_equipo: idEquipo }),
-    apiCall('listarCategorias')
-  ]);
+  // obtenerEquipo YA devuelve: equipo, categoria, jugadores, cuerpo_tecnico
+  const rEq = await apiCall('obtenerEquipo', { id: idEquipo });
 
   if (!rEq.success) {
     mostrarError('No se pudo cargar el equipo: ' + (rEq.mensaje || 'error desconocido'));
     return;
   }
 
-  equipoActual = rEq.data;
-  jugadoresActuales = rJug.success ? (rJug.data || []) : [];
-  ctActuales = rCT.success ? (rCT.data || []) : [];
+  const d = rEq.data;
+  equipoActual = d.equipo || {};
+  categoriaActual = d.categoria || null;
+  jugadoresActuales = d.jugadores || [];
+  ctActuales = d.cuerpo_tecnico || [];
 
-  // Buscar la categoría completa
-  if (rCats.success && rCats.data) {
-    categoriaActual = rCats.data.find(c => c.id === equipoActual.categoria);
-  }
-
-  // Cargar el club si no viene
-  if (equipoActual.id_club) {
-    const rClub = await apiCall('obtenerClub', { id: equipoActual.id_club });
-    if (rClub.success) clubActual = rClub.data;
-  }
-
-  // Actualizar controles
-  document.getElementById('ctrlTitulo').textContent = `Carnets de ${equipoActual.nombre_equipo || (clubActual ? clubActual.nombre : 'Equipo')}`;
+  const nombreEquipo = obtenerNombreEquipo();
+  const catNombre = categoriaActual ? categoriaActual.nombre : (equipoActual.categoria || '');
+  document.getElementById('ctrlTitulo').textContent = 'Carnets de ' + nombreEquipo;
   document.getElementById('ctrlSubtitulo').textContent =
-    `${categoriaActual ? categoriaActual.nombre : equipoActual.categoria} · ${jugadoresActuales.length} jugadores · ${ctActuales.length} CT`;
+    catNombre + ' · ' + jugadoresActuales.length + ' jugadores · ' + ctActuales.length + ' CT';
 
   renderizar();
 }
 
-// ═══════════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════════
+function obtenerNombreEquipo() {
+  // El equipo usa nombre_club (no tiene nombre propio salvo nombre_display)
+  return pick(equipoActual, ['nombre_display', 'nombre_equipo', 'nombre_club', 'nombre'], 'Equipo');
+}
+
+function obtenerCategoriaId() {
+  return pick(equipoActual, ['categoria', 'id_categoria'], '');
+}
 
 function renderizar() {
   const incluirNoAprobados = document.getElementById('incluirNoAprobados').checked;
 
-  // Filtrar jugadores
-  let jugadores = jugadoresActuales;
+  let jugadores = jugadoresActuales.slice();
   if (!incluirNoAprobados) {
-    jugadores = jugadores.filter(j => j.estado === 'APROBADO');
+    jugadores = jugadores.filter(j => pick(j, ['estado']) === 'APROBADO');
   }
-  // Ordenar por número de camiseta
-  jugadores.sort((a, b) => (Number(a.numero_camiseta) || 999) - (Number(b.numero_camiseta) || 999));
+  jugadores.sort((a, b) => {
+    const na = Number(pick(a, ['numero_camiseta', 'numero', 'dorsal'], 999));
+    const nb = Number(pick(b, ['numero_camiseta', 'numero', 'dorsal'], 999));
+    return na - nb;
+  });
 
-  // Filtrar CT
-  let ct = ctActuales;
+  let ct = ctActuales.slice();
   if (!incluirNoAprobados) {
-    ct = ct.filter(m => m.estado === 'APROBADO');
+    ct = ct.filter(m => pick(m, ['estado']) === 'APROBADO');
   }
 
-  // Crear lista combinada
   const items = [
     ...jugadores.map(j => ({ tipo: 'jugador', data: j })),
     ...ct.map(m => ({ tipo: 'ct', data: m }))
@@ -459,45 +351,46 @@ function renderizar() {
     document.getElementById('pageContainer').innerHTML = `
       <div class="empty">
         <h3>No hay personas para generar carnets</h3>
-        <p>Verifica que tengas jugadores aprobados en el equipo.</p>
-      </div>
-    `;
+        <p>Verifica que tengas jugadores aprobados. Probá marcar "Incluir pendientes/rechazados".</p>
+      </div>`;
     return;
   }
 
-  // Dividir en páginas de 6
-  const POR_PAGINA = 6;
+  const POR_PAGINA = 8;
   const paginas = [];
   for (let i = 0; i < items.length; i += POR_PAGINA) {
     paginas.push(items.slice(i, i + POR_PAGINA));
   }
 
   let html = '';
-  paginas.forEach((paginaItems, idx) => {
+  paginas.forEach(paginaItems => {
     html += '<div class="page">';
     paginaItems.forEach(item => {
       html += item.tipo === 'jugador' ? renderCarnetJugador(item.data) : renderCarnetCT(item.data);
     });
-    // Rellenar slots vacíos para que el grid no se acomode raro
     const vacios = POR_PAGINA - paginaItems.length;
-    for (let i = 0; i < vacios; i++) {
-      html += '<div style="visibility:hidden;"></div>';
-    }
+    for (let i = 0; i < vacios; i++) html += '<div style="visibility:hidden;"></div>';
     html += '</div>';
   });
 
   document.getElementById('pageContainer').innerHTML = html;
 }
 
-// ─── Carnet de jugador ─────────────────────────────────────────
 function renderCarnetJugador(j) {
-  const nombreCompleto = ((j.nombres || '') + ' ' + (j.apellidos || '')).trim() || '—';
-  const fechaNac = formatearFechaCarnet(j.fecha_nacimiento);
-  const dorsal = j.numero_camiseta ? String(j.numero_camiseta).padStart(2, '0') : '—';
-  const sinDorsal = !j.numero_camiseta;
-  const posicion = (j.posicion || '').toUpperCase() || 'JUGADOR';
-  const foto = j.foto_url
-    ? `<img src="${escapeHtml(j.foto_url)}" alt="${escapeHtml(nombreCompleto)}" onerror="this.parentNode.innerHTML='<div class=&quot;carnet-foto-placeholder&quot;>👤</div>'">`
+  const nombres = pick(j, ['nombres', 'nombre']);
+  const apellidos = pick(j, ['apellidos', 'apellido']);
+  const nombreCompleto = (nombres + ' ' + apellidos).trim() ||
+                         pick(j, ['nombre_completo'], '—');
+  const doc = pick(j, ['documento', 'numero_documento', 'cedula', 'identificacion'], '—');
+  const fechaNac = formatearFechaCarnet(pick(j, ['fecha_nacimiento', 'fecha_nac', 'nacimiento']));
+  const sangre = pick(j, ['tipo_sangre', 'rh', 'grupo_sanguineo'], '');
+  const numero = pick(j, ['numero_camiseta', 'numero', 'dorsal'], '');
+  const dorsal = numero ? String(numero).padStart(2, '0') : '—';
+  const sinDorsal = !numero;
+  const posicion = String(pick(j, ['posicion', 'posicion_campo'], 'JUGADOR')).toUpperCase();
+  const fotoUrl = pick(j, ['foto_url', 'foto', 'url_foto'], '');
+  const foto = fotoUrl
+    ? `<img src="${escapeHtml(fotoUrl)}" alt="" onerror="this.parentNode.innerHTML='<div class=&quot;carnet-foto-placeholder&quot;>👤</div>'">`
     : '<div class="carnet-foto-placeholder">👤</div>';
 
   return `
@@ -506,27 +399,28 @@ function renderCarnetJugador(j) {
       <div class="carnet-body">
         <div class="carnet-foto">${foto}</div>
         <div class="carnet-datos">
-          <div>
-            <div class="carnet-nombre">${escapeHtml(nombreCompleto)}</div>
-            <div class="carnet-dato"><strong>CC</strong> ${escapeHtml(j.documento || '—')}</div>
-            <div class="carnet-dato"><strong>Nac</strong> ${escapeHtml(fechaNac)}</div>
-          </div>
+          <div class="carnet-nombre">${escapeHtml(nombreCompleto)}</div>
+          <div class="carnet-dato"><strong>CC</strong> ${escapeHtml(doc)}</div>
+          <div class="carnet-dato"><strong>Nac</strong> ${escapeHtml(fechaNac)}</div>
+          ${sangre ? `<div class="carnet-dato"><strong>RH</strong> <span class="carnet-sangre">${escapeHtml(sangre)}</span></div>` : ''}
           <div class="carnet-pos">${escapeHtml(posicion)}</div>
         </div>
       </div>
       <div class="carnet-dorsal ${sinDorsal ? 'sin' : ''}">${escapeHtml(dorsal)}</div>
       ${renderFooterCarnet()}
-    </div>
-  `;
+    </div>`;
 }
 
-// ─── Carnet de cuerpo técnico ──────────────────────────────────
 function renderCarnetCT(m) {
-  const nombreCompleto = (m.nombre_completo || ((m.nombres || '') + ' ' + (m.apellidos || ''))).trim() || '—';
-  const fechaNac = formatearFechaCarnet(m.fecha_nacimiento);
-  const rol = (m.rol || 'CUERPO TÉCNICO').toUpperCase();
-  const foto = m.foto_url
-    ? `<img src="${escapeHtml(m.foto_url)}" alt="${escapeHtml(nombreCompleto)}" onerror="this.parentNode.innerHTML='<div class=&quot;carnet-foto-placeholder&quot;>👤</div>'">`
+  const nombreCompleto = pick(m, ['nombre_completo']) ||
+    ((pick(m, ['nombres', 'nombre']) + ' ' + pick(m, ['apellidos', 'apellido'])).trim()) || '—';
+  const doc = pick(m, ['documento', 'numero_documento', 'cedula', 'identificacion'], '—');
+  const fechaNac = formatearFechaCarnet(pick(m, ['fecha_nacimiento', 'fecha_nac', 'nacimiento']));
+  const sangre = pick(m, ['tipo_sangre', 'rh', 'grupo_sanguineo'], '');
+  const rol = String(pick(m, ['rol', 'cargo'], 'CUERPO TÉCNICO')).toUpperCase();
+  const fotoUrl = pick(m, ['foto_url', 'foto', 'url_foto'], '');
+  const foto = fotoUrl
+    ? `<img src="${escapeHtml(fotoUrl)}" alt="" onerror="this.parentNode.innerHTML='<div class=&quot;carnet-foto-placeholder&quot;>👔</div>'">`
     : '<div class="carnet-foto-placeholder">👔</div>';
 
   return `
@@ -535,25 +429,24 @@ function renderCarnetCT(m) {
       <div class="carnet-body">
         <div class="carnet-foto">${foto}</div>
         <div class="carnet-datos">
-          <div>
-            <div class="carnet-nombre">${escapeHtml(nombreCompleto)}</div>
-            <div class="carnet-dato"><strong>CC</strong> ${escapeHtml(m.documento || '—')}</div>
-            <div class="carnet-dato"><strong>Nac</strong> ${escapeHtml(fechaNac)}</div>
-          </div>
+          <div class="carnet-nombre">${escapeHtml(nombreCompleto)}</div>
+          <div class="carnet-dato"><strong>CC</strong> ${escapeHtml(doc)}</div>
+          <div class="carnet-dato"><strong>Nac</strong> ${escapeHtml(fechaNac)}</div>
+          ${sangre ? `<div class="carnet-dato"><strong>RH</strong> <span class="carnet-sangre">${escapeHtml(sangre)}</span></div>` : ''}
           <div class="carnet-pos ct">${escapeHtml(rol)}</div>
         </div>
       </div>
       ${renderFooterCarnet()}
-    </div>
-  `;
+    </div>`;
 }
 
-// ─── Header común ──────────────────────────────────────────────
 function renderHeaderCarnet() {
-  const nombreEquipo = (equipoActual.nombre_equipo || (clubActual ? clubActual.nombre : 'Equipo')).toUpperCase();
-  const catId = equipoActual.categoria || '';
-  const escudo = clubActual && clubActual.escudo_url
-    ? `<img src="${escapeHtml(clubActual.escudo_url)}" alt="" onerror="this.parentNode.innerHTML='${siglas(nombreEquipo)}'">`
+  const nombreEquipo = obtenerNombreEquipo().toUpperCase();
+  const catId = obtenerCategoriaId();
+  // El escudo viene en el propio equipo (escudo_url)
+  const escudoUrl = pick(equipoActual, ['escudo_url', 'escudo', 'logo_url'], '');
+  const escudo = escudoUrl
+    ? `<img src="${escapeHtml(escudoUrl)}" alt="" onerror="this.parentNode.innerHTML='${siglas(nombreEquipo)}'">`
     : siglas(nombreEquipo);
 
   return `
@@ -563,17 +456,12 @@ function renderHeaderCarnet() {
         <div class="carnet-equipo-nombre">${escapeHtml(nombreEquipo)}</div>
       </div>
       <div class="carnet-categoria-badge">${escapeHtml(catId)}</div>
-    </div>
-  `;
+    </div>`;
 }
 
 function renderFooterCarnet() {
   return `<div class="carnet-footer">XVI COPA BON BON BUM 2026 · LA PAILA, ZARZAL · OCTUBRE</div>`;
 }
-
-// ═══════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════
 
 function siglas(nombre) {
   if (!nombre) return '?';
@@ -585,45 +473,31 @@ function siglas(nombre) {
 function formatearFechaCarnet(valor) {
   if (!valor) return '—';
   const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
   let d = null;
   if (typeof valor === 'string') {
-    // ISO o ya formateado
     if (/^\d{4}-\d{2}-\d{2}/.test(valor)) {
       d = new Date(valor);
-    } else if (/^\d{2}\/\d{2}\/\d{4}/.test(valor)) {
-      const partes = valor.substring(0, 10).split('/');
-      d = new Date(partes[2], partes[1] - 1, partes[0]);
+    } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(valor)) {
+      const p = valor.substring(0, 10).split('/');
+      d = new Date(p[2], p[1] - 1, p[0]);
     } else {
       d = new Date(valor);
     }
   } else if (valor instanceof Date) {
     d = valor;
   }
-
   if (!d || isNaN(d.getTime())) return String(valor);
-
   return String(d.getUTCDate()).padStart(2, '0') + ' ' +
-         meses[d.getUTCMonth()] + ' ' +
-         d.getUTCFullYear();
+         meses[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
 }
 
 function mostrarError(msg) {
-  document.getElementById('pageContainer').innerHTML = `
-    <div class="empty">
-      <h3>Error</h3>
-      <p>${escapeHtml(msg)}</p>
-    </div>
-  `;
+  document.getElementById('pageContainer').innerHTML =
+    `<div class="empty"><h3>Error</h3><p>${escapeHtml(msg)}</p></div>`;
 }
-
-// ═══════════════════════════════════════════════════════════════
-// EVENTOS
-// ═══════════════════════════════════════════════════════════════
 
 document.getElementById('incluirNoAprobados').addEventListener('change', renderizar);
 
-// Init
 if (idEquipo) cargar();
 </script>
 
