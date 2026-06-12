@@ -589,6 +589,23 @@
     overflow: hidden;
   }
   .escudo img { width: 100%; height: 100%; object-fit: cover; }
+  /* Escudo de partido "por definir": muestra la referencia (6A, 1B...) */
+  .escudo-ref {
+    border-style: dashed !important;
+    color: var(--gris) !important;
+    background: var(--bg) !important;
+    font-size: 15px !important;
+    letter-spacing: 0;
+  }
+  .partido.por-definir {
+    border-style: dashed;
+    opacity: 0.92;
+  }
+  .partido.por-definir .team-name {
+    color: var(--gris);
+    font-weight: 600;
+    font-style: italic;
+  }
   .team-name {
     font-weight: 700;
     font-size: 15px;
@@ -1425,6 +1442,7 @@ function renderPartidoCard(p, modoVivo = false) {
   const esVivo = p.estado === 'EN_CURSO';
   const esFinalizado = ['FINALIZADO', 'WO_LOCAL', 'WO_VISITANTE'].includes(p.estado);
   const mostrarScore = esVivo || esFinalizado;
+  const porDefinir = p.por_definir === true;
 
   let estadoLabel = '';
   if (esVivo) {
@@ -1435,23 +1453,46 @@ function renderPartidoCard(p, modoVivo = false) {
     estadoLabel = `<span>${formatearFecha(p.fecha)} · ${formatearHora(p.hora)}</span>`;
   }
 
+  // Etiqueta de fase legible para cruces por definir
+  const faseLabel = {
+    'UBICACION': 'UBICACIÓN',
+    'SEMIFINAL': 'SEMIFINAL',
+    'SEMIS': 'SEMIFINAL',
+    'FINAL': 'FINAL'
+  }[p.fase] || '';
+
+  const metaIzq = porDefinir && faseLabel
+    ? `${p.categoria} · ${faseLabel}`
+    : `${p.categoria}${p.grupo ? ' · GRUPO ' + p.grupo : ''}`;
+
+  // Para partidos por definir, mostrar la referencia en un "escudo" punteado
+  const escudoLocal = porDefinir
+    ? `<div class="escudo escudo-ref">${escapeHtmlPat(p.nombre_local || '?')}</div>`
+    : renderEscudo(p.escudo_local, p.nombre_local);
+  const escudoVisit = porDefinir
+    ? `<div class="escudo escudo-ref">${escapeHtmlPat(p.nombre_visitante || '?')}</div>`
+    : renderEscudo(p.escudo_visitante, p.nombre_visitante);
+
+  const nombreLocal = porDefinir ? 'Por definir' : (p.nombre_local || '?');
+  const nombreVisit = porDefinir ? 'Por definir' : (p.nombre_visitante || '?');
+
   return `
-    <div class="partido ${esVivo ? 'vivo' : ''}">
+    <div class="partido ${esVivo ? 'vivo' : ''} ${porDefinir ? 'por-definir' : ''}">
       <div class="partido-meta">
-        <span class="cat-pill">${p.categoria}${p.grupo ? ' · GRUPO ' + p.grupo : ''}</span>
+        <span class="cat-pill">${metaIzq}</span>
         ${estadoLabel}
       </div>
       <div class="partido-teams">
         <div class="team">
-          ${renderEscudo(p.escudo_local, p.nombre_local)}
-          <div class="team-name">${p.nombre_local || '?'}</div>
+          ${escudoLocal}
+          <div class="team-name">${nombreLocal}</div>
         </div>
         <div class="score ${!mostrarScore ? 'programado' : ''}">
           ${mostrarScore ? (p.gol_local + ' – ' + p.gol_visitante) : 'VS'}
         </div>
         <div class="team visit">
-          <div class="team-name">${p.nombre_visitante || '?'}</div>
-          ${renderEscudo(p.escudo_visitante, p.nombre_visitante)}
+          <div class="team-name">${nombreVisit}</div>
+          ${escudoVisit}
         </div>
       </div>
       <div class="partido-info">
