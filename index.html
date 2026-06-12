@@ -966,58 +966,69 @@
 
     /* ===== TARJETAS DE PARTIDO EN MÓVIL ===== */
     .partido {
-      padding: 16px;
+      padding: 16px 14px;
     }
     .partido-meta {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       font-size: 10px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       gap: 8px;
     }
     .cat-pill {
       padding: 4px 10px;
       white-space: nowrap;
     }
-    /* Equipos apilados verticalmente: escudo arriba, nombre debajo, centrado */
+    /* Ambos equipos: escudo ARRIBA, nombre ABAJO, centrados y simétricos.
+       El visitante usa column-reverse para anular su row-reverse de desktop
+       y quedar igual que el local. */
     .partido-teams {
       grid-template-columns: 1fr auto 1fr;
-      gap: 8px;
+      gap: 6px;
+      align-items: start;
     }
     .team {
       flex-direction: column;
+      align-items: center;
       gap: 8px;
       text-align: center;
     }
     .team.visit {
-      flex-direction: column;
+      flex-direction: column-reverse;
       text-align: center;
     }
     .team-name {
       font-size: 13px;
       width: 100%;
+      font-weight: 800;
+      line-height: 1.25;
     }
     .escudo {
-      width: 52px;
-      height: 52px;
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
     }
+    /* El VS / marcador centrado verticalmente con los escudos */
     .score {
-      font-size: 28px;
-      min-width: 56px;
+      font-size: 20px;
+      min-width: 40px;
+      margin-top: 14px;
+      color: var(--gris);
     }
     .score.programado {
-      font-size: 13px;
+      font-size: 14px;
       letter-spacing: 1px;
+      margin-top: 18px;
     }
     .partido-info {
-      margin-top: 14px;
+      margin-top: 16px;
       font-size: 11px;
     }
     /* Título de cancha más compacto */
     #programacionContainer h3 {
       font-size: 18px !important;
-      margin: 18px 0 12px !important;
+      margin: 20px 0 12px !important;
     }
-    /* Tabs de fecha que no aprieten */
+    /* Tabs de fecha */
     #fechasTabs {
       gap: 6px;
     }
@@ -1031,8 +1042,8 @@
   @media (max-width: 380px) {
     .seccion { padding: 32px 16px; }
     .team-name { font-size: 12px; }
-    .escudo { width: 46px; height: 46px; font-size: 11px; }
-    .score { font-size: 24px; min-width: 48px; }
+    .escudo { width: 48px; height: 48px; font-size: 12px; }
+    .score { font-size: 18px; min-width: 34px; margin-top: 12px; }
     .partido-teams { gap: 4px; }
   }
 </style>
